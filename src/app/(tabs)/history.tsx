@@ -1,11 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { PlaceholderScreen } from '@/shared/ui/PlaceholderScreen';
 
 export default function HistoryScreen() {
-  return (
-    <View style={styles.root}>
-      <Text>Операции</Text>
-    </View>
-  );
+  return <PlaceholderScreen title="Операции" hint="История операций появится в фазе 3." />;
 }
-
-const styles = StyleSheet.create({ root: { flex: 1, alignItems: 'center', justifyContent: 'center' } });

@@ -1,11 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { PlaceholderScreen } from '@/shared/ui/PlaceholderScreen';
 
 export default function ReportsScreen() {
-  return (
-    <View style={styles.root}>
-      <Text>Отчёты</Text>
-    </View>
-  );
+  return <PlaceholderScreen title="Отчёты" hint="Отчёты появятся в фазе 5." />;
 }
-
-const styles = StyleSheet.create({ root: { flex: 1, alignItems: 'center', justifyContent: 'center' } });

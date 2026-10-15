@@ -1,11 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { PlaceholderScreen } from '@/shared/ui/PlaceholderScreen';
 
 export default function BudgetScreen() {
-  return (
-    <View style={styles.root}>
-      <Text>Бюджет</Text>
-    </View>
-  );
+  return <PlaceholderScreen title="Бюджет" hint="Сводка по категориям появится, когда подключим базу." />;
 }
-
-const styles = StyleSheet.create({ root: { flex: 1, alignItems: 'center', justifyContent: 'center' } });
