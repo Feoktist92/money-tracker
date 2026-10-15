@@ -13,7 +13,7 @@
     "db:generate": "drizzle-kit generate",
     "adb": "bash scripts/adb-connect.sh",
     "prepare": "husky",
-    "precommit": "lint-staged && npm run typecheck"
+    "precommit": "lint-staged && npm run typecheck && npm test"
   },
   "dependencies": {
     "@expo-google-fonts/golos-text": "^0.4.2",
@@ -70,11 +70,10 @@
     "typescript": "~6.0.3"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "eslint --fix",
-      "jest --bail --passWithNoTests --findRelatedTests"
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix"
     ],
-    "*.{json,css}": [
+    "*.{js,json,css}": [
       "prettier --write"
     ]
   }
