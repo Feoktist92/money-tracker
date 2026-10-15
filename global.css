@@ -1,0 +1,90 @@
+@import 'tailwindcss';
+@import 'uniwind';
+@import 'heroui-native/styles';
+
+@source './node_modules/heroui-native/lib';
+
+/*
+ * Токены DESIGN.md. Свои роли — --color-* (классы bg-ground, text-ink…).
+ * surface и accent берём у HeroUI (--surface, --accent → bg-surface, bg-accent), чтобы не дублировать их --color-*.
+ * Значения совпадают с src/shared/theme/tokens.ts — проверяет tokens.test.ts.
+ */
+@layer theme {
+  :root {
+    @variant light {
+      --color-ground: #f4f3f8;
+      --color-nav: #ffffff;
+      --color-tile: #e7e4f4;
+      --color-fill: #c9c1ee;
+      --color-key: #f4f3f8;
+      --color-divider: #ece9f6;
+      --color-ink: #1b1730;
+      --color-ink-secondary: #4a4470;
+      --color-tonal: #e3dff6;
+      --color-on-tonal: #3b2a9e;
+      --color-carry: #3b2a9e;
+      --color-near-tile: #f6e7c6;
+      --color-near-fill: #ebcb87;
+      --color-near-text: #3a2600;
+      --color-over-tile: #f3b6b3;
+      --color-over-text: #6e0d14;
+
+      --background: #f4f3f8;
+      --foreground: #1b1730;
+      --surface: #ffffff;
+      --overlay: #ffffff;
+      --accent: #5b3fd6;
+      --accent-foreground: #ffffff;
+      --muted: #4a4470;
+      --default: #e3dff6;
+      --default-foreground: #3b2a9e;
+      --border: #ece9f6;
+      --separator: #ece9f6;
+      --field-background: #f4f3f8;
+      --field-foreground: #1b1730;
+
+      --font-normal: 'GolosText_400Regular';
+      --font-medium: 'GolosText_500Medium';
+      --font-semibold: 'GolosText_600SemiBold';
+      --font-bold: 'GolosText_700Bold';
+    }
+
+    @variant dark {
+      --color-ground: #12101c;
+      --color-nav: #1a1728;
+      --color-tile: #1e1b30;
+      --color-fill: #3a3366;
+      --color-key: #2a2546;
+      --color-divider: #2a2546;
+      --color-ink: #efedfa;
+      --color-ink-secondary: #b2abd6;
+      --color-tonal: #2f2a55;
+      --color-on-tonal: #cfc7ff;
+      --color-carry: #cfc7ff;
+      --color-near-tile: #3a2c12;
+      --color-near-fill: #6e5220;
+      --color-near-text: #f7d58d;
+      --color-over-tile: #5a2025;
+      --color-over-text: #ffc9c6;
+
+      --background: #12101c;
+      --foreground: #efedfa;
+      --surface: #1e1b30;
+      --overlay: #1e1b30;
+      --accent: #a99bff;
+      --accent-foreground: #12101c;
+      --muted: #b2abd6;
+      --default: #2f2a55;
+      --default-foreground: #cfc7ff;
+      --border: #2a2546;
+      --separator: #2a2546;
+      --field-background: #2a2546;
+      --field-foreground: #efedfa;
+
+      --font-normal: 'GolosText_400Regular';
+      --font-medium: 'GolosText_500Medium';
+      --font-semibold: 'GolosText_600SemiBold';
+      --font-bold: 'GolosText_700Bold';
+    }
+  }
+}
