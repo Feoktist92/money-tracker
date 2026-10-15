@@ -11,7 +11,7 @@ const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommen
  *   application — запуск приложения: провайдеры, миграции (это FSD-слой «app»; src/app занят роутером)
  *   pages → widgets → features → entities → shared
  * Срезы одного слоя (pages/*, widgets/*, features/*, entities/*) друг друга не импортируют.
- * Срез открывает наружу только index.ts. Циклы запрещены.
+ * Срез открывает наружу только index.ts; так же и модуль shared (папка с index.ts). Циклы запрещены.
  */
 const LAYERS = ['app', 'application', 'pages', 'widgets', 'features', 'entities', 'shared'];
 const SLICED_LAYERS = ['pages', 'widgets', 'features', 'entities'];
@@ -46,24 +46,39 @@ for (const layer of SLICED_LAYERS) {
   }
 }
 
+const SLICE_PUBLIC_API = {
+  group: SLICED_LAYERS.flatMap((layer) => [`@/${layer}/*/*`, `**/${layer}/*/*`]),
+  message: 'FSD: импортируйте срез через его публичный API (index.ts), а не вглубь.',
+};
+// shared делится на сегменты (lib, db, theme, ui), сегмент — на модули-папки: @/shared/<сегмент>/<модуль>.
+const SHARED_MODULE_PUBLIC_API = {
+  group: ['@/shared/*/*/*', '**/shared/*/*/*'],
+  message: 'FSD: модуль shared импортируется через его index.ts (@/shared/<сегмент>/<модуль>), а не вглубь.',
+};
+// Внутри shared соседний модуль подключается как '../<модуль>', а не '../<модуль>/<файл>'.
+const SHARED_SIBLING_PUBLIC_API = {
+  group: ['../*/*'],
+  message: 'FSD: соседний модуль shared подключайте через его index.ts: "../<модуль>".',
+};
+
 module.exports = defineConfig([
   expoConfig,
   eslintPluginPrettierRecommended,
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{js,jsx,ts,tsx}'],
     rules: {
       'import/no-restricted-paths': ['error', { zones }],
       'import/no-cycle': ['error', { maxDepth: Infinity }],
+      'no-restricted-imports': ['error', { patterns: [SLICE_PUBLIC_API, SHARED_MODULE_PUBLIC_API] }],
+    },
+  },
+  {
+    // позже в списке — переопределяет правило целиком, поэтому правила для всех файлов повторены
+    files: ['src/shared/**/*.{js,jsx,ts,tsx}'],
+    rules: {
       'no-restricted-imports': [
         'error',
-        {
-          patterns: [
-            {
-              group: SLICED_LAYERS.flatMap((layer) => [`@/${layer}/*/*`, `**/${layer}/*/*`]),
-              message: 'FSD: импортируйте срез через его публичный API (index.ts), а не вглубь.',
-            },
-          ],
-        },
+        { patterns: [SLICE_PUBLIC_API, SHARED_MODULE_PUBLIC_API, SHARED_SIBLING_PUBLIC_API] },
       ],
     },
   },

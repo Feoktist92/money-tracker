@@ -4,3 +4,4 @@ assets/
 package-lock.json
 src/uniwind-types.d.ts
 *.md
+tsconfig.json
