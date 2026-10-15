@@ -1,8 +1,8 @@
 /** Сумма в копейках. Всегда целое безопасное число. */
 export type Kopecks = number;
 
-const NBSP = ' ';
-const MINUS = '−';
+const NBSP = '\u00A0';
+const MINUS = '\u2212';
 const ANY_SPACE = /\s/g; // в JS \s включает U+00A0 и U+202F
 
 const rubleFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });

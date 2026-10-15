@@ -9,7 +9,7 @@ import {
 } from './money';
 
 /** Пишем ожидания обычными пробелами, сравниваем с неразрывными. */
-const nb = (s: string) => s.replace(/ /g, ' ');
+const nb = (s: string) => s.replace(/ /g, '\u00A0');
 
 describe('formatMoney', () => {
   it.each([
@@ -42,7 +42,7 @@ describe('formatMoney', () => {
 describe('parseMoney', () => {
   it.each([
     ['1 240,5', 124050],
-    ['1 240,50', 124050],
+    ['1\u00A0240,50', 124050],
     ['1240.5', 124050],
     ['12,', 1200],
     ['0', 0],
