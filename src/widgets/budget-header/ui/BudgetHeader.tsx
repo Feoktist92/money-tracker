@@ -36,7 +36,7 @@ export function BudgetHeader({
         onPress={onPeriodPress}
         style={styles.period}
       >
-        <AppText variant="titleApp" style={{ letterSpacing: -0.22 }}>
+        <AppText variant="titleApp" numberOfLines={1} style={{ letterSpacing: -0.22 }}>
           {title}
         </AppText>
         <AppIcon name="chevron-down" size={20} color={t.inkSecondary} strokeWidth={2} />
@@ -47,15 +47,13 @@ export function BudgetHeader({
           accessibilityLabel={`Осталось ${formatMoney(remaining, { kopecks: 'never' })}. ${summary}`}
           style={[styles.pill, { backgroundColor: t.tonal }]}
         >
-          <AppText variant="label" color={t.onTonal}>
+          <AppText variant="label" color={t.onTonal} numberOfLines={1}>
             Осталось {formatMoney(remaining, { kopecks: 'never' })}
           </AppText>
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={
-            notificationCount > 0 ? `Из уведомлений: ${notificationCount} ждут подтверждения` : 'Из уведомлений'
-          }
+          accessibilityLabel={notificationCount > 0 ? `Из уведомлений, новых: ${notificationCount}` : 'Из уведомлений'}
           onPress={onNotificationsPress}
           style={styles.bell}
         >
@@ -63,7 +61,7 @@ export function BudgetHeader({
           {notificationCount > 0 && (
             <View style={[styles.badge, { backgroundColor: t.accent }]}>
               <AppText variant="caption" weight={700} color={t.onAccent} style={styles.badgeText}>
-                {notificationCount}
+                {notificationCount > 99 ? '99+' : notificationCount}
               </AppText>
             </View>
           )}
@@ -82,16 +80,23 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 4,
   },
-  period: { minHeight: layout.touch, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  right: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  pill: { minHeight: 32, borderRadius: 16, paddingHorizontal: 14, justifyContent: 'center' },
+  period: { minHeight: layout.touch, flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  right: { flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 0 },
+  pill: {
+    minHeight: 32,
+    flexShrink: 1,
+    minWidth: 0,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+  },
   bell: { width: layout.touch, height: layout.touch, alignItems: 'center', justifyContent: 'center' },
   badge: {
     position: 'absolute',
     top: 6,
     right: 4,
     minWidth: 18,
-    height: 18,
+    minHeight: 18,
     paddingHorizontal: 5,
     borderRadius: 9,
     alignItems: 'center',

@@ -28,4 +28,20 @@ describe('Coin', () => {
       label(<Coin kind="account" name="Счёт" icon="banknote" color="неизвестный" balance={0} />),
     ).not.toThrow();
   });
+
+  it('ключ из прототипа («constructor») откатывается к violet, а не ломает палитру', () => {
+    const json = (element: React.ReactElement) => {
+      let tree!: ReturnType<typeof create>;
+      act(() => {
+        tree = create(element);
+      });
+      return tree.toJSON();
+    };
+    expect(() =>
+      json(<Coin kind="account" name="Счёт" icon="banknote" color="constructor" balance={0} />),
+    ).not.toThrow();
+    expect(json(<Coin kind="account" name="Счёт" icon="banknote" color="constructor" balance={0} />)).toEqual(
+      json(<Coin kind="account" name="Счёт" icon="banknote" color="violet" balance={0} />),
+    );
+  });
 });

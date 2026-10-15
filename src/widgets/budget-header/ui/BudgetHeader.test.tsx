@@ -46,6 +46,18 @@ describe('BudgetHeader', () => {
       `Осталось 22${NB}390${NB}₽. 17 дней до конца периода`,
       'Из уведомлений',
     ]);
-    expect(labels(3)).toContain('Из уведомлений: 3 ждут подтверждения');
+    expect(labels(3)).toContain('Из уведомлений, новых: 3');
+  });
+
+  it('бейдж больше 99 показывает «99+»', () => {
+    expect(texts(render(150))).toContain('99+');
+    expect(texts(render(150))).not.toContain('150');
+  });
+
+  it('длинный период обрезается в одну строку', () => {
+    const title = render(0)
+      .root.findAllByType(Text)
+      .find((n) => n.props.children === 'Октябрь');
+    expect(title?.props.numberOfLines).toBe(1);
   });
 });

@@ -42,6 +42,6 @@ export function CoinTray({ income, accounts }: { income: TrayIncome[]; accounts:
 }
 
 const styles = StyleSheet.create({
-  root: { flexGrow: 0, height: layout.tray },
+  root: { flexGrow: 0, minHeight: layout.tray },
   content: { paddingHorizontal: layout.sidePad, paddingVertical: 8, gap: 8, alignItems: 'center' },
 });

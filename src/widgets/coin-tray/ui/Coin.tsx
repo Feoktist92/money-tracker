@@ -10,7 +10,8 @@ export type CoinProps =
   | { kind: 'income'; name: string; icon: string }
   | { kind: 'account'; name: string; icon: string; color: string; balance: Kopecks };
 
-const isCoinColor = (value: string, palette: Record<CoinColor, string>): value is CoinColor => value in palette;
+const isCoinColor = (value: string, palette: Record<CoinColor, string>): value is CoinColor =>
+  Object.hasOwn(palette, value);
 
 /** Монета-пилюля лотка: доход — кольцо цвета accent без заливки, счёт — цветной круг со значком и балансом. */
 export function Coin(props: CoinProps) {
@@ -37,8 +38,8 @@ export function Coin(props: CoinProps) {
         {!income && <View style={styles.innerRing} />}
         <AppIcon name={props.icon} size={income ? 20 : 18} color={income ? t.accent : icons[colorKey]} />
       </View>
-      <View>
-        <AppText variant="label" weight={600} style={styles.name}>
+      <View style={styles.text}>
+        <AppText variant="label" weight={600} numberOfLines={1} style={styles.name}>
           {props.name}
         </AppText>
         <AppText variant="caption" color={t.inkSecondary}>
@@ -51,7 +52,7 @@ export function Coin(props: CoinProps) {
 
 const styles = StyleSheet.create({
   pill: {
-    height: 56,
+    minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
@@ -70,5 +71,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.3)',
   },
+  text: { maxWidth: 140 },
   name: { fontSize: 13, lineHeight: 16 },
 });
