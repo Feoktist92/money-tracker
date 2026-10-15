@@ -8,6 +8,7 @@ import { HeroUINativeProvider } from 'heroui-native';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { DatabaseGate } from '@/application';
 import { fontAssets } from '@/shared/theme/fonts';
 
 SplashScreen.preventAutoHideAsync();
@@ -25,7 +26,9 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <HeroUINativeProvider>
         <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false }} />
+        <DatabaseGate>
+          <Stack screenOptions={{ headerShown: false }} />
+        </DatabaseGate>
       </HeroUINativeProvider>
     </GestureHandlerRootView>
   );
