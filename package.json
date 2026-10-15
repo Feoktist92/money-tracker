@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "format": "prettier --write .",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "adb": "bash scripts/adb-connect.sh"
   },
   "dependencies": {
     "@expo-google-fonts/golos-text": "^0.4.2",
