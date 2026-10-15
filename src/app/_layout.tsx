@@ -7,8 +7,10 @@ import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { DatabaseGate } from '@/application';
+import { DatabaseGate } from '@/shared/db/DatabaseGate';
 import { fontAssets } from '@/shared/theme/fonts';
+
+import migrations from '../../drizzle/migrations';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,7 +22,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <HeroUINativeProvider>
         <StatusBar style="auto" />
-        <DatabaseGate>
+        <DatabaseGate migrations={migrations}>
           <Stack screenOptions={{ headerShown: false }} />
         </DatabaseGate>
       </HeroUINativeProvider>

@@ -3,19 +3,20 @@ import * as SplashScreen from 'expo-splash-screen';
 import { type ReactNode, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { db, expoDb, expoDrizzle } from '@/shared/db/client';
-import { seedDefaults } from '@/shared/db/seed';
 import { AppText } from '@/shared/ui/AppText';
 import { Screen } from '@/shared/ui/Screen';
 
-import migrations from '../../drizzle/migrations';
+import { db, expoDb, expoDrizzle } from '../client';
+import { seedDefaults } from '../seed';
 
 /**
- * Применяет миграции и сид; до готовности ничего не рендерит (сплэш остаётся), при ошибке показывает её.
+ * Применяет миграции (их передаёт app: папка drizzle/ лежит в корне проекта) и сид; до готовности ничего не рендерит (сплэш остаётся), при ошибке показывает её.
  * Внешние ключи включаются только после миграций: миграции идут в транзакции, где SQLite игнорирует
  * `foreign_keys = OFF`, а пересборка таблицы (DROP TABLE) при включённых ключах каскадно удаляет связанные строки.
  */
-export function DatabaseGate({ children }: { children: ReactNode }) {
+type Migrations = Parameters<typeof useMigrations>[1];
+
+export function DatabaseGate({ children, migrations }: { children: ReactNode; migrations: Migrations }) {
   const { success, error } = useMigrations(expoDrizzle, migrations);
   const [ready, setReady] = useState(false);
   const [seedError, setSeedError] = useState<Error | null>(null);

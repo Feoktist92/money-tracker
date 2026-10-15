@@ -89,12 +89,6 @@ describe('границы слоёв FSD', () => {
     );
   });
 
-  it('слой application не импортирует app', async () => {
-    expect(await rules('src/application/index.ts', "import '@/app/_layout';\n")).toContain(
-      'import/no-restricted-paths',
-    );
-  });
-
   it('допустимые импорты проходят: app → pages, pages → widgets, widgets → shared', async () => {
     expect(
       await rules('src/app/(tabs)/index.tsx', "export { BudgetPage as default } from '@/pages/budget';\n"),

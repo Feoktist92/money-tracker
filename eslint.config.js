@@ -7,13 +7,12 @@ const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommen
 
 /**
  * Feature-Sliced Design. Слои сверху вниз: слой импортирует только нижележащие.
- *   app         — маршруты Expo Router (src/app); тонкие реэкспорты страниц
- *   application — запуск приложения: провайдеры, миграции (это FSD-слой «app»; src/app занят роутером)
+ *   app — слой приложения: маршруты Expo Router (src/app), тонкие реэкспорты страниц и корневой layout
  *   pages → widgets → features → entities → shared
  * Срезы одного слоя (pages/*, widgets/*, features/*, entities/*) друг друга не импортируют.
  * Срез открывает наружу только index.ts; так же и модуль shared (папка с index.ts). Циклы запрещены.
  */
-const LAYERS = ['app', 'application', 'pages', 'widgets', 'features', 'entities', 'shared'];
+const LAYERS = ['app', 'pages', 'widgets', 'features', 'entities', 'shared'];
 const SLICED_LAYERS = ['pages', 'widgets', 'features', 'entities'];
 
 const slicesOf = (layer) => {
