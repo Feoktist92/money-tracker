@@ -1,0 +1,6 @@
+dist/
+drizzle/
+assets/
+package-lock.json
+src/uniwind-types.d.ts
+*.md
