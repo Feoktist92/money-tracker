@@ -6,6 +6,8 @@ import { computeCategoryMonths } from '@/shared/lib/carry';
 import { divideKopecks, type Kopecks } from '@/shared/lib/money';
 import { type DateKey, daysLeftInPeriod, type PeriodKey, periodOf, periodRange } from '@/shared/lib/period';
 
+import { periodOfSql } from './period-sql';
+
 export type TileState = 'normal' | 'near' | 'over';
 
 /** Нужная сводке часть настроек. Структурно совместима с AppSettings из entities/settings: срезы одного слоя друг друга не импортируют. */
@@ -58,7 +60,7 @@ export async function getBudgetOverview(db: Db, today: DateKey, settings: Budget
     .orderBy(asc(categories.sortOrder), asc(categories.name));
 
   // Тот же период, что periodOf(): сдвиг даты назад на (startDay − 1) дней даёт месяц периода.
-  const periodOfDate = sql<string>`strftime('%Y-%m', ${transactions.date}, ${`-${startDay - 1} days`})`;
+  const periodOfDate = periodOfSql(transactions.date, startDay);
   const spentRows = await db
     .select({
       categoryId: transactions.categoryId,
