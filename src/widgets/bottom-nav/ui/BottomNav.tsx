@@ -5,8 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/shared/theme/tokens';
 import { useTokens } from '@/shared/theme/useTokens';
-
-import { AppText } from './AppText';
+import { AppText } from '@/shared/ui/AppText';
 
 /** Иконки и подписи — как в макете C-main. Ключ — имя файла маршрута в src/app/(tabs). */
 export const NAV_ITEMS: Readonly<Record<string, { label: string; Icon: LucideIcon }>> = {

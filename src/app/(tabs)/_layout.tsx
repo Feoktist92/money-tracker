@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
 
 import { useTokens } from '@/shared/theme/useTokens';
-import { BottomNav } from '@/shared/ui/BottomNav';
+import { BottomNav } from '@/widgets/bottom-nav';
 
 export default function TabsLayout() {
   const t = useTokens();

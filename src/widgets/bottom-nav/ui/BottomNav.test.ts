@@ -4,7 +4,7 @@ import path from 'node:path';
 import { NAV_ITEMS } from './BottomNav';
 
 it('у каждого экрана вкладок есть пункт нижней навигации, и наоборот', () => {
-  const routes = readdirSync(path.join(__dirname, '../../app/(tabs)'))
+  const routes = readdirSync(path.join(__dirname, '../../../app/(tabs)'))
     .filter((file) => file.endsWith('.tsx') && !file.startsWith('_'))
     .map((file) => file.replace(/\.tsx$/, ''))
     .sort();
