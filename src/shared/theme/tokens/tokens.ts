@@ -66,6 +66,12 @@ export const coinColors = {
 } as const;
 export type CoinColor = keyof (typeof coinColors)['light'];
 
+/** Цвет значка внутри монеты счёта (DESIGN.md): белый; в тёмной теме на бирюзовой и янтарной монете — тёмный. */
+export const coinIconColors = {
+  light: { violet: '#FFFFFF', teal: '#FFFFFF', amber: '#FFFFFF' },
+  dark: { violet: '#FFFFFF', teal: '#06201D', amber: '#2B1A04' },
+} as const;
+
 export const radii = { tile: 20, block: 24, key: 16, button: 28, sheet: 28 } as const;
 export const layout = {
   gap: 4,
