@@ -59,7 +59,7 @@ module.exports = defineConfig([
         {
           patterns: [
             {
-              group: SLICED_LAYERS.map((layer) => `@/${layer}/*/*`),
+              group: SLICED_LAYERS.flatMap((layer) => [`@/${layer}/*/*`, `**/${layer}/*/*`]),
               message: 'FSD: импортируйте срез через его публичный API (index.ts), а не вглубь.',
             },
           ],

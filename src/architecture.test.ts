@@ -17,10 +17,12 @@ async function rules(file: string, code: string): Promise<string[]> {
   const run = spawnSync(
     process.execPath,
     [eslintBin, '--stdin', '--stdin-filename', path.join(root, file), '--format', 'json'],
-    { cwd: root, input: code, encoding: 'utf8' },
+    { cwd: root, input: code, encoding: 'utf8', timeout: 50_000 },
   );
+  if (run.error || !run.stdout) throw new Error(`ESLint не отработал: ${run.error?.message ?? run.stderr}`);
   const [result] = JSON.parse(run.stdout) as { messages: { ruleId: string | null }[] }[];
-  return (result?.messages ?? []).map((m) => m.ruleId ?? 'parse-error');
+  if (!result) throw new Error('ESLint не вернул результат: файл попал под ignores?');
+  return result.messages.map((m) => m.ruleId ?? 'parse-error');
 }
 
 describe('границы слоёв FSD', () => {
@@ -50,6 +52,12 @@ describe('границы слоёв FSD', () => {
 
   it('внутрь среза другого слоя — только через index.ts', async () => {
     expect(await rules('src/app/(tabs)/index.tsx', "import '@/pages/budget/ui/BudgetPage';\n")).toContain(
+      'no-restricted-imports',
+    );
+  });
+
+  it('внутрь среза относительным путём тоже нельзя', async () => {
+    expect(await rules('src/app/(tabs)/index.tsx', "import '../../pages/budget/ui/BudgetPage';\n")).toContain(
       'no-restricted-imports',
     );
   });
