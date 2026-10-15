@@ -3,8 +3,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTokens } from '@/shared/theme/useTokens';
 
-import { AppText } from './AppText';
-import { Screen } from './Screen';
+import { AppText } from '../AppText';
+import { Screen } from '../Screen';
 
 /** Экран-заглушка вкладки: заголовок, пояснение и необязательное содержимое. */
 export function PlaceholderScreen({ title, hint, children }: { title: string; hint: string; children?: ReactNode }) {

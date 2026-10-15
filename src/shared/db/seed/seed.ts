@@ -2,8 +2,8 @@ import { eq } from 'drizzle-orm';
 
 import { newId } from '@/shared/lib/id';
 
-import { accounts, categories, settings } from './schema';
-import type { Db } from './types';
+import { accounts, categories, settings } from '../schema';
+import type { Db } from '../types';
 
 /** Ключ в settings: сид уже выполнялся. Не входит в AppSettings. */
 export const SEED_FLAG_KEY = 'seededAt';

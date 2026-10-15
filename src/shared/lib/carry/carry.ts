@@ -1,5 +1,5 @@
-import type { Kopecks } from './money';
-import { comparePeriods, type PeriodKey, periodsBetween } from './period';
+import type { Kopecks } from '../money';
+import { comparePeriods, type PeriodKey, periodsBetween } from '../period';
 
 export type CarryMode = 'none' | 'surplus' | 'surplus_debt';
 

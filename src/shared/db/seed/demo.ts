@@ -3,9 +3,9 @@ import { eq } from 'drizzle-orm';
 import { newId } from '@/shared/lib/id';
 import { addDays, type DateKey, periodOf, periodRange, shiftPeriod } from '@/shared/lib/period';
 
-import { accounts, categories, limitOverrides, settings, transactions, transactionTags } from './schema';
+import { accounts, categories, limitOverrides, settings, transactions, transactionTags } from '../schema';
 import { DEFAULT_CATEGORIES, seedDefaults } from './seed';
-import type { Db } from './types';
+import type { Db } from '../types';
 
 type NewTransactionRow = typeof transactions.$inferInsert;
 

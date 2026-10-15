@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm';
 
-import { accounts, categories } from './schema';
+import { accounts, categories } from '../schema';
 import { seedDefaults } from './seed';
-import { createTestDb } from './test-db';
+import { createTestDb } from '../testing';
 
 describe('seedDefaults', () => {
   it('на пустой базе создаёт 3 счёта и 10 категорий', async () => {

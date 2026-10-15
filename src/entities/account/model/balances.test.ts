@@ -1,8 +1,7 @@
 import { eq } from 'drizzle-orm';
 
 import { accounts } from '@/shared/db/schema';
-import { createTestDb } from '@/shared/db/test-db';
-import { insertTestTransaction, seededIds } from '@/shared/db/test-fixtures';
+import { createTestDb, insertTestTransaction, seededIds } from '@/shared/db/testing';
 
 import { getAccountBalances } from './balances';
 

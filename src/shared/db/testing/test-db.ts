@@ -3,14 +3,14 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import path from 'node:path';
 
-import * as schema from './schema';
-import type { Db } from './types';
+import * as schema from '../schema';
+import type { Db } from '../types';
 
 /** Чистая база в памяти с теми же миграциями, что в приложении. Только для Jest. */
 export function createTestDb(): Db {
   const sqlite = new Database(':memory:');
   sqlite.pragma('foreign_keys = ON');
   const db = drizzle(sqlite, { schema });
-  migrate(db, { migrationsFolder: path.join(__dirname, '../../../drizzle') });
+  migrate(db, { migrationsFolder: path.join(__dirname, '../../../../drizzle') });
   return db;
 }

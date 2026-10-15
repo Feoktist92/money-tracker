@@ -1,5 +1,5 @@
 import { settings } from '@/shared/db/schema';
-import { createTestDb } from '@/shared/db/test-db';
+import { createTestDb } from '@/shared/db/testing';
 
 import { DEFAULT_SETTINGS, getSettings, setSetting } from './settings';
 

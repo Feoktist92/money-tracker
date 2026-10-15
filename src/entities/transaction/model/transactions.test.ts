@@ -1,8 +1,7 @@
 import { eq } from 'drizzle-orm';
 
 import { transactions } from '@/shared/db/schema';
-import { createTestDb } from '@/shared/db/test-db';
-import { seededIds } from '@/shared/db/test-fixtures';
+import { createTestDb, seededIds } from '@/shared/db/testing';
 
 import { addTransaction, softDeleteTransaction } from './transactions';
 

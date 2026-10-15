@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { type ThemeTokens, tokens } from './tokens';
 
-const css = readFileSync(path.join(__dirname, '../../../global.css'), 'utf8');
+const css = readFileSync(path.join(__dirname, '../../../../global.css'), 'utf8');
 
 /** Переменные одного блока «@variant <name> { … }». */
 function variables(variant: 'light' | 'dark'): Record<string, string> {

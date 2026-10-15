@@ -1,8 +1,8 @@
 import { newId } from '@/shared/lib/id';
 
-import { accounts, categories, transactions } from './schema';
-import { seedDefaults } from './seed';
-import type { Db } from './types';
+import { accounts, categories, transactions } from '../schema';
+import { seedDefaults } from '../seed';
+import type { Db } from '../types';
 
 /** id счетов и категорий сида по имени — для тестов запросов. */
 export async function seededIds(

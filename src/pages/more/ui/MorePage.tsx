@@ -3,7 +3,7 @@ import { Button } from 'heroui-native';
 import { useState } from 'react';
 
 import { db } from '@/shared/db/client';
-import { seedDemo } from '@/shared/db/demo';
+import { seedDemo } from '@/shared/db/seed';
 import { toDateKey } from '@/shared/lib/period';
 import { useTokens } from '@/shared/theme/useTokens';
 import { AppText } from '@/shared/ui/AppText';

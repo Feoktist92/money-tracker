@@ -1,8 +1,8 @@
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { openDatabaseSync } from 'expo-sqlite';
 
-import * as schema from './schema';
-import type { Db } from './types';
+import * as schema from '../schema';
+import type { Db } from '../types';
 
 /** Файл базы приложения. enableChangeListener нужен для useDataVersion. */
 export const expoDb = openDatabaseSync('monety.db', { enableChangeListener: true });

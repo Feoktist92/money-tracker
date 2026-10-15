@@ -1,4 +1,4 @@
-import { type Kopecks, roundToKopecks } from './money';
+import { type Kopecks, roundToKopecks } from '../money';
 
 export type CalcError = 'empty' | 'syntax' | 'divide_by_zero' | 'too_large';
 export type CalcResult = { ok: true; value: Kopecks } | { ok: false; error: CalcError };

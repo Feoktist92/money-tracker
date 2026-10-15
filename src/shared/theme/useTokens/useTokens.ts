@@ -1,6 +1,6 @@
 import { useColorScheme } from 'react-native';
 
-import { coinColors, type ThemeTokens, tokens } from './tokens';
+import { coinColors, type ThemeTokens, tokens } from '../tokens';
 
 /** Токены текущей системной темы — для style, SVG и Reanimated, где классы недоступны. */
 export function useTokens(): ThemeTokens {

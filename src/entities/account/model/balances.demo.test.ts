@@ -1,6 +1,5 @@
-import { seedDemo } from '@/shared/db/demo';
-import { createTestDb } from '@/shared/db/test-db';
-import { seededIds } from '@/shared/db/test-fixtures';
+import { seedDemo } from '@/shared/db/seed';
+import { createTestDb, seededIds } from '@/shared/db/testing';
 
 import { getAccountBalances } from './balances';
 
