@@ -9,8 +9,9 @@ import type { Db } from '../types';
 /** Чистая база в памяти с теми же миграциями, что в приложении. Только для Jest. */
 export function createTestDb(): Db {
   const sqlite = new Database(':memory:');
-  sqlite.pragma('foreign_keys = ON');
   const db = drizzle(sqlite, { schema });
   migrate(db, { migrationsFolder: path.join(__dirname, '../../../../drizzle') });
+  // Как в приложении: внешние ключи включаются после миграций, иначе пересборка таблицы (DROP TABLE) удалила бы данные каскадом.
+  sqlite.pragma('foreign_keys = ON');
   return db;
 }
