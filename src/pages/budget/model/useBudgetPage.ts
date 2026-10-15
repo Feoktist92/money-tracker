@@ -49,7 +49,12 @@ export function useBudgetPage(): State {
     let cancelled = false;
     load().then(
       (data) => !cancelled && setState({ data, error: null }),
-      (e: unknown) => !cancelled && setState({ data: null, error: e instanceof Error ? e : new Error(String(e)) }),
+      (e: unknown) => {
+        if (cancelled) return;
+        const error = e instanceof Error ? e : new Error(String(e));
+        // Неудачная перезагрузка не стирает уже показанные данные
+        setState((s) => ({ data: s.data, error }));
+      },
     );
     return () => {
       cancelled = true;

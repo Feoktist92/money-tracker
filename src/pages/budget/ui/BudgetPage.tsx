@@ -1,34 +1,35 @@
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BudgetHeader } from '@/widgets/budget-header';
 import { Mosaic } from '@/widgets/budget-mosaic';
 import { CoinTray } from '@/widgets/coin-tray';
-import { formatMoney } from '@/shared/lib/money';
 import { monthNameGenitive, periodTitle, shiftPeriod } from '@/shared/lib/period';
-import { pluralRu } from '@/shared/lib/plural';
 import { AppText } from '@/shared/ui/AppText';
 import { Screen } from '@/shared/ui/Screen';
 
+import { budgetSummary } from '../model/budgetSummary';
 import { useBudgetPage } from '../model/useBudgetPage';
-
-const DAYS = ['день', 'дня', 'дней'] as const;
 
 /** Главный экран (макет C-main): шапка, мозаика категорий, лоток монет. Нижнюю навигацию рисует layout вкладок. */
 export function BudgetPage() {
   const { data, error } = useBudgetPage();
-  if (error) {
+  useEffect(() => {
+    if (error) console.error(error);
+  }, [error]);
+  if (!data) {
+    if (!error) return <Screen />;
     return (
       <Screen>
         <View style={styles.message}>
-          <AppText>Не удалось посчитать бюджет: {error.message}</AppText>
+          <AppText>Не удалось посчитать бюджет. Закройте приложение и откройте снова.</AppText>
         </View>
       </Screen>
     );
   }
-  if (!data) return <Screen />;
 
   const { overview, today } = data;
-  const summary = `${overview.daysLeft} ${pluralRu(overview.daysLeft, DAYS)} до конца периода, по ${formatMoney(overview.perDay, { kopecks: 'never' })} в день`;
+  const summary = budgetSummary(overview);
   return (
     <Screen>
       <BudgetHeader

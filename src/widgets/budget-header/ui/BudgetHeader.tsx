@@ -33,10 +33,17 @@ export function BudgetHeader({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Выбрать период: ${title}`}
+        accessibilityState={{ disabled: !onPeriodPress }}
         onPress={onPeriodPress}
         style={styles.period}
       >
-        <AppText variant="titleApp" numberOfLines={1} style={{ letterSpacing: -0.22 }}>
+        <AppText
+          variant="titleApp"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
+          style={{ letterSpacing: -0.22 }}
+        >
           {title}
         </AppText>
         <AppIcon name="chevron-down" size={20} color={t.inkSecondary} strokeWidth={2} />
@@ -47,13 +54,14 @@ export function BudgetHeader({
           accessibilityLabel={`Осталось ${formatMoney(remaining, { kopecks: 'never' })}. ${summary}`}
           style={[styles.pill, { backgroundColor: t.tonal }]}
         >
-          <AppText variant="label" color={t.onTonal} numberOfLines={1}>
+          <AppText variant="label" color={t.onTonal} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
             Осталось {formatMoney(remaining, { kopecks: 'never' })}
           </AppText>
         </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={notificationCount > 0 ? `Из уведомлений, новых: ${notificationCount}` : 'Из уведомлений'}
+          accessibilityState={{ disabled: !onNotificationsPress }}
           onPress={onNotificationsPress}
           style={styles.bell}
         >
@@ -81,7 +89,7 @@ const styles = StyleSheet.create({
     paddingRight: 4,
   },
   period: { minHeight: layout.touch, flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  right: { flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 0 },
+  right: { flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 1, minWidth: 0 },
   pill: {
     minHeight: 32,
     flexShrink: 1,

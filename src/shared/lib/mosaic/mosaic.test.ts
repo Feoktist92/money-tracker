@@ -49,6 +49,22 @@ describe('layoutMosaic на данных макета C-main', () => {
   });
 });
 
+describe('layoutMosaic: дробная высота из onLayout', () => {
+  it('высоты плиток целые, колонка занимает ровно floor(высота) минус отступы и зазоры', () => {
+    const { tiles } = layoutMosaic(MOCK, { ...SCREEN, height: 607.64, width: 389.7 });
+    for (const column of [0, 1] as const) {
+      const col = tiles.filter((t) => t.column === column);
+      expect(col.every((t) => Number.isInteger(t.height) && Number.isInteger(t.width))).toBe(true);
+      const sum = col.reduce((acc, t) => acc + t.height, 0);
+      expect(sum).toBe(607 - 2 * 4 - 4 * (col.length - 1));
+    }
+  });
+
+  it('пустой список возвращает целую высоту', () => {
+    expect(layoutMosaic([], { ...SCREEN, height: 607.64 }).contentHeight).toBe(607);
+  });
+});
+
 describe('layoutMosaic: общие свойства', () => {
   it('пустой список — нет плиток', () => {
     expect(layoutMosaic([], SCREEN)).toEqual({ tiles: [], contentHeight: 608 });

@@ -121,7 +121,10 @@ function columnHeights(
 }
 
 export function layoutMosaic(items: readonly MosaicItem[], options: MosaicOptions): MosaicLayout {
-  const { width, height, gap, minTile, sidePad, verticalPad, minColumnShare } = options;
+  const { gap, minTile, sidePad, verticalPad, minColumnShare } = options;
+  // onLayout может отдать дробные dp — раскладываем по целым, чтобы плитки сходились без щелей
+  const width = Math.floor(options.width);
+  const height = Math.floor(options.height);
   if (items.length === 0) return { tiles: [], contentHeight: height };
 
   const weights = effectiveWeights(items);

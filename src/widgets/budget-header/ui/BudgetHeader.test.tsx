@@ -5,7 +5,7 @@ import { BudgetHeader } from './BudgetHeader';
 
 const NB = '\u00A0';
 
-function render(notificationCount: number) {
+function render(notificationCount: number, onPeriodPress?: () => void) {
   let tree!: ReturnType<typeof create>;
   act(() => {
     tree = create(
@@ -14,6 +14,7 @@ function render(notificationCount: number) {
         remaining={2_239_000}
         summary="17 дней до конца периода"
         notificationCount={notificationCount}
+        onPeriodPress={onPeriodPress}
       />,
     );
   });
@@ -59,5 +60,21 @@ describe('BudgetHeader', () => {
       .root.findAllByType(Text)
       .find((n) => n.props.children === 'Октябрь');
     expect(title?.props.numberOfLines).toBe(1);
+  });
+
+  it('название периода и пилюля сжимаются по ширине, а не обрезаются', () => {
+    const hosts = render(0).root.findAll((n) => typeof n.type === 'string' && n.props.adjustsFontSizeToFit === true);
+    expect(hosts.map((n) => n.props.numberOfLines)).toEqual([1, 1]);
+    const children = hosts.map((n) => (Array.isArray(n.props.children) ? n.props.children.join('') : n.props.children));
+    expect(children).toEqual(['Октябрь', `Осталось 22${NB}390${NB}₽`]);
+  });
+
+  it('кнопка периода без обработчика помечена отключённой', () => {
+    const period = (onPress?: () => void) =>
+      render(0, onPress).root.find(
+        (n) => typeof n.type === 'string' && n.props.accessibilityLabel === 'Выбрать период: Октябрь',
+      );
+    expect(period().props.accessibilityState).toEqual({ disabled: true });
+    expect(period(() => {}).props.accessibilityState).toEqual({ disabled: false });
   });
 });
