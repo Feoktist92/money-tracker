@@ -7,6 +7,7 @@ import type { Kopecks } from '@/shared/lib/money';
 /** Баланс каждого счёта: initialBalance + входящие − исходящие, без удалённых операций. */
 export async function getAccountBalances(db: Db): Promise<Record<string, Kopecks>> {
   const rows = await db.select({ id: accounts.id, initial: accounts.initialBalance }).from(accounts);
+
   const incoming = await db
     .select({
       accountId: transactions.toAccountId,
