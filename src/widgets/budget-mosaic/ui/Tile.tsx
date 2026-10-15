@@ -62,13 +62,20 @@ export function Tile({
       )}
       {plan.mode === 'row' ? (
         <View style={[styles.rowMode, { paddingHorizontal: plan.padHorizontal }]}>
-          <View style={styles.nameRow}>
+          <View style={[styles.nameRow, styles.shrinkBox]}>
             <AppIcon name={row.icon} size={16} color={palette.ink} />
             <AppText variant="tileName" color={palette.ink} numberOfLines={1} style={styles.shrink}>
               {row.name}
             </AppText>
           </View>
-          <AppText variant="tileAmount" color={palette.ink} numberOfLines={1} style={{ fontSize: 15, lineHeight: 19 }}>
+          <AppText
+            variant="tileAmount"
+            color={palette.ink}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+            style={{ fontSize: 15, lineHeight: 19, flexShrink: 0 }}
+          >
             {amount}
           </AppText>
         </View>
@@ -84,6 +91,8 @@ export function Tile({
             variant="tileAmount"
             color={palette.ink}
             numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
             style={{
               fontSize: plan.amountSize,
               lineHeight: Math.ceil(plan.amountSize * 1.25),
@@ -117,6 +126,7 @@ const styles = StyleSheet.create({
   fill: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   shrink: { flexShrink: 1 },
+  shrinkBox: { flexShrink: 1, minWidth: 0 },
   carryRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   rowMode: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
 });

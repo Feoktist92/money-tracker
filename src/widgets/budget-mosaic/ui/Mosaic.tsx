@@ -43,6 +43,7 @@ export function Mosaic({ rows, carryFrom }: { rows: BudgetRow[]; carryFrom: stri
       style={styles.root}
       onLayout={(event) => {
         const { width, height } = event.nativeEvent.layout;
+        if (width <= 0 || height <= 0) return;
         setSize((prev) => (prev && prev.width === width && prev.height === height ? prev : { width, height }));
       }}
     >

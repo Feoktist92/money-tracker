@@ -1,12 +1,12 @@
 import { type ReactTestInstance } from 'react-test-renderer';
 import { act, create } from 'react-test-renderer';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import type { BudgetRow } from '@/entities/budget';
 
 import { Tile } from './Tile';
 
-const NB = ' ';
+const NB = '\u00A0';
 
 const row = (patch: Partial<BudgetRow>): BudgetRow => ({
   categoryId: 'c',
@@ -41,12 +41,12 @@ describe('Tile', () => {
     expect(texts).toContain(`11${NB}240 из 18${NB}000`);
   });
 
-  it('перерасход: остаток со знаком «−»', () => {
+  it('перерасход: остаток со знаком «\u2212»', () => {
     const { texts } = render(
       row({ name: 'Кафе', limit: 700_000, available: 700_000, spent: 786_000, remaining: -86_000, state: 'over' }),
       { x: 12, y: 484, width: 194, height: 120 },
     );
-    expect(texts).toContain(`−860${NB}₽`);
+    expect(texts).toContain(`\u2212860${NB}₽`);
   });
 
   it('перенос: третья строка «+700 с сентября»', () => {
@@ -86,6 +86,20 @@ describe('Tile', () => {
     const large = render(carryRow, rect, 2).texts;
     expect(large).toContain(`4${NB}560${NB}₽`);
     expect(large.length).toBeLessThan(normal.length);
+  });
+
+  it('низкая плитка с длинным названием: название сжимается, а остаток остаётся', () => {
+    const longName = 'Очень длинное название категории которое не должно вытеснять сумму из плитки';
+    const { tree, texts } = render(
+      row({ name: longName, limit: 250_000, available: 250_000, spent: 234_000, remaining: 16_000, state: 'near' }),
+      { x: 210, y: 555, width: 168, height: 49 },
+    );
+    expect(texts).toContain(`160${NB}₽`);
+    const nameText = tree.root.findAllByType(Text).find((node) => node.props.children === longName);
+    let container: ReactTestInstance | null = nameText ?? null;
+    while (container && StyleSheet.flatten(container.props.style)?.minWidth !== 0) container = container.parent;
+    expect(container).not.toBeNull();
+    expect(StyleSheet.flatten(container!.props.style)).toMatchObject({ flexShrink: 1 });
   });
 
   it('у плитки есть подпись для TalkBack', () => {

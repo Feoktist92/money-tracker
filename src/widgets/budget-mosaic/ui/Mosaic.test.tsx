@@ -54,6 +54,10 @@ describe('Mosaic', () => {
     for (const tile of tree.root.findAllByType(Tile)) expect(tile.props.rect.height).toBeGreaterThanOrEqual(48);
   });
 
+  it('нулевая область (0×0) не даёт плиток', () => {
+    expect(render([row(1)], { width: 0, height: 0 }).root.findAllByType(Tile)).toHaveLength(0);
+  });
+
   it('без категорий ничего не рисует и не падает', () => {
     expect(render([]).root.findAllByType(Tile)).toHaveLength(0);
   });
