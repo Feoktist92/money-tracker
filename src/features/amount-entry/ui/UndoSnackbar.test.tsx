@@ -24,7 +24,18 @@ describe('UndoSnackbar', () => {
     act(() => useUndoStore.getState().show({ id: 'tx1', label: '−1 240 ₽ в Продукты' }));
     const all = tree.root.findAllByType(Text).map((n) => String(n.props.children));
     expect(all).toEqual(['Записано', 'Отменить']);
+    expect(tree.root.findAllByType(Text)[0]!.props.accessibilityLabel).toBe('Записано: −1 240 ₽ в Продукты');
     expect(() => pressable(tree, 'Отменить запись')).not.toThrow();
+  });
+
+  it('панель не скрывает кнопку от VoiceOver: у предков «Записано» нет accessible', () => {
+    const tree = render(<UndoSnackbar onUndo={jest.fn()} />);
+    act(() => useUndoStore.getState().show({ id: 'tx1', label: 'x' }));
+    const accessibleAncestors: unknown[] = [];
+    for (let node = tree.root.findAllByType(Text)[0]!.parent; node; node = node.parent) {
+      if (node.props.accessible) accessibleAncestors.push(node.type);
+    }
+    expect(accessibleAncestors).toEqual([]);
   });
 
   it('«Отменить» откатывает запись по id и закрывает панель', () => {

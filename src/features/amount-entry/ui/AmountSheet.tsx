@@ -1,5 +1,5 @@
-import { type ReactNode, useState } from 'react';
-import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { Keyboard, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { ReduceMotion, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -58,6 +58,15 @@ function SheetBody({ session, info, recent, preview, onRecord }: AmountSheetProp
   const { press, setExpression, setDayOffset, setNote, close } = useEntryStore.getState();
   const [noteOpen, setNoteOpen] = useState(note.length > 0);
   const [noteFocused, setNoteFocused] = useState(false);
+  const noteInput = useRef<TextInput>(null);
+  // Системную клавиатуру можно скрыть Back или свайпом (Android): поле при этом остаётся в фокусе без onBlur, снимаем фокус сами
+  useEffect(() => {
+    const hide = Keyboard.addListener('keyboardDidHide', () => {
+      noteInput.current?.blur();
+      setNoteFocused(false);
+    });
+    return () => hide.remove();
+  }, []);
 
   const view = describeAmount(expression);
   const amount = view.value !== null && view.value > 0 ? view.value : null;
@@ -89,7 +98,13 @@ function SheetBody({ session, info, recent, preview, onRecord }: AmountSheetProp
           <DayChip label="Вчера" selected={dayOffset === -1} onPress={() => setDayOffset(-1)} />
         </View>
 
-        <AppText variant="caption" color={t.inkSecondary} numberOfLines={1} style={styles.expression}>
+        <AppText
+          variant="caption"
+          color={t.inkSecondary}
+          numberOfLines={1}
+          ellipsizeMode="head"
+          style={styles.expression}
+        >
           {view.expression ?? ' '}
         </AppText>
         <AppText
@@ -126,6 +141,8 @@ function SheetBody({ session, info, recent, preview, onRecord }: AmountSheetProp
 
         {noteOpen ? (
           <TextInput
+            ref={noteInput}
+            autoFocus
             accessibilityLabel="Комментарий"
             placeholder="Комментарий"
             placeholderTextColor={t.inkSecondary}
@@ -199,7 +216,7 @@ const styles = StyleSheet.create({
   dayChip: { minHeight: 48, paddingHorizontal: 12, borderRadius: 24, justifyContent: 'center' },
   expression: { minHeight: 16 },
   after: { minHeight: 16 },
-  chips: { flexDirection: 'row', gap: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { minHeight: 48, paddingHorizontal: 16, borderRadius: 24, justifyContent: 'center' },
   noteButton: {
     minHeight: 48,

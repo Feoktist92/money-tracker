@@ -1,4 +1,4 @@
-import { Text, TextInput } from 'react-native';
+import { Keyboard, Text, TextInput } from 'react-native';
 import { act } from 'react-test-renderer';
 
 import { useEntryStore } from '../model/entryStore';
@@ -133,5 +133,52 @@ describe('AmountSheet', () => {
     const input = tree.root.findByType(TextInput);
     act(() => input.props.onChangeText('кофе'));
     expect(useEntryStore.getState().note).toBe('кофе');
+  });
+
+  it('комментарий: поле получает фокус сразу', () => {
+    open(expense);
+    const tree = render(<AmountSheet info={{}} recent={[]} onRecord={jest.fn()} />);
+    tap(tree, 'Добавить комментарий');
+    expect(tree.root.findByType(TextInput).props.autoFocus).toBe(true);
+  });
+
+  it('пока поле комментария в фокусе, клавиатура, чипы и превью скрыты, после blur возвращаются', () => {
+    open(expense);
+    const preview = jest.fn((amount: number | null) => <Text>{`превью ${amount}`}</Text>);
+    const tree = render(<AmountSheet info={{}} recent={[50000]} preview={preview} onRecord={jest.fn()} />);
+    tap(tree, 'Добавить комментарий');
+    const input = tree.root.findByType(TextInput);
+    act(() => input.props.onFocus());
+    expect(() => pressable(tree, '7')).toThrow();
+    expect(() => pressable(tree, `Подставить 500${NB}₽`)).toThrow();
+    expect(texts(tree)).not.toContain('превью null');
+    act(() => input.props.onBlur());
+    expect(() => pressable(tree, '7')).not.toThrow();
+    expect(() => pressable(tree, `Подставить 500${NB}₽`)).not.toThrow();
+    expect(texts(tree)).toContain('превью null');
+  });
+
+  it('скрытие системной клавиатуры снимает фокус с поля, подписка снимается при размонтировании', () => {
+    const remove = jest.fn();
+    const hideListeners: ((event: never) => void)[] = [];
+    const spy = jest.spyOn(Keyboard, 'addListener').mockImplementation((event, handler) => {
+      if (event === 'keyboardDidHide') hideListeners.push(handler as (event: never) => void);
+      return { remove } as never;
+    });
+    try {
+      open(expense);
+      const tree = render(<AmountSheet info={{}} recent={[]} onRecord={jest.fn()} />);
+      tap(tree, 'Добавить комментарий');
+      act(() => tree.root.findByType(TextInput).props.onFocus());
+      expect(() => pressable(tree, '7')).toThrow();
+      act(() => {
+        for (const listener of hideListeners) listener({} as never);
+      });
+      expect(() => pressable(tree, '7')).not.toThrow();
+      act(() => tree.unmount());
+      expect(remove).toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

@@ -32,15 +32,15 @@ export function UndoSnackbar({ onUndo }: { onUndo: (id: string) => void }) {
       style={[styles.wrap, { bottom: layout.nav + insets.bottom + 12 }]}
       accessibilityLiveRegion="polite"
     >
-      <View style={[styles.bar, { backgroundColor: t.ink }]} accessible accessibilityLabel={`Записано: ${entry.label}`}>
-        <AppText variant="label" color={t.ground} style={styles.text}>
+      <View style={[styles.bar, { backgroundColor: t.ink }]}>
+        <AppText variant="label" color={t.ground} style={styles.text} accessibilityLabel={`Записано: ${entry.label}`}>
           Записано
         </AppText>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Отменить запись"
           onPress={() => {
-            void Haptics.selectionAsync();
+            void Haptics.selectionAsync().catch(() => undefined);
             useUndoStore.getState().dismiss();
             onUndo(entry.id);
           }}
