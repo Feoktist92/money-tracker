@@ -221,10 +221,17 @@ describe('Tile', () => {
       expect(onPress).toHaveBeenCalledWith(expect.objectContaining({ categoryId: 'c', name: 'Продукты' }));
     });
 
-    it('без onPress плитка не кнопка и не реагирует', () => {
+    it('без onPress плитка не кнопка, не объявляется отключённой и не реагирует на нажатие', () => {
       const tree = renderTile();
       expect(rootNode(tree).props.accessibilityRole).toBeUndefined();
-      expect(pressNode(tree).props.disabled).toBe(true);
+      expect(pressNode(tree).props.disabled).toBeUndefined();
+      expect(rootNode(tree).props.accessibilityState?.disabled).not.toBe(true);
+      expect(pressNode(tree).props.onPress).toBeUndefined();
+      expect(() =>
+        act(() => {
+          pressNode(tree).props.onPress?.();
+        }),
+      ).not.toThrow();
     });
 
     it('превью («поднята»): рамка accent 2 dp и не тускнеет, когда настоящая плитка тускнеет', () => {

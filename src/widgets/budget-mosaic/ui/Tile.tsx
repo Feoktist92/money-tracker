@@ -70,7 +70,6 @@ export function Tile({
       accessible
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={tileLabel(row)}
-      disabled={!onPress}
       onPress={onPress ? () => onPress(row) : undefined}
       style={[
         styles.tile,
