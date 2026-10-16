@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
-import Animated, { ReduceMotion, SlideInDown } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { describeAmount, expressionFromKopecks, isRecordable } from '@/shared/lib/amount-input';
@@ -12,6 +12,7 @@ import { AppText } from '@/shared/ui/AppText';
 
 import { useEntryStore } from '../model/entryStore';
 import { previewFits, sheetBottomPadding } from '../model/sheetLayout';
+import { startSlideIn } from '../model/slideIn';
 import { useKeyboardInset } from '../model/useKeyboardInset';
 import {
   actionLabel,
@@ -54,6 +55,13 @@ function SheetBody({ session, info, recent, preview, onRecord }: AmountSheetProp
   const insets = useSafeAreaInsets();
   const keyboard = useKeyboardInset();
   const { height: windowHeight } = useWindowDimensions();
+  const reduceMotion = useReducedMotion();
+  // 1 — шторка за нижним краем, 0 — на месте
+  const slide = useSharedValue(reduceMotion ? 0 : 1);
+  useEffect(() => {
+    startSlideIn(slide, reduceMotion);
+  }, [slide, reduceMotion]);
+  const slideStyle = useAnimatedStyle(() => ({ transform: [{ translateY: slide.value * windowHeight }] }));
   // Естественная высота шторки (с учётом maxHeight): по ней решаем, поместится ли плитка-превью над ней
   const [sheetHeight, setSheetHeight] = useState(0);
   const expression = useEntryStore((state) => state.expression);
@@ -92,9 +100,8 @@ function SheetBody({ session, info, recent, preview, onRecord }: AmountSheetProp
         </View>
       )}
       <Animated.View
-        entering={SlideInDown.duration(220).reduceMotion(ReduceMotion.System)}
         onLayout={(event) => setSheetHeight(event.nativeEvent.layout.height)}
-        style={[styles.sheet, { backgroundColor: t.surface, maxHeight: windowHeight - insets.top }]}
+        style={[styles.sheet, { backgroundColor: t.surface, maxHeight: windowHeight - insets.top }, slideStyle]}
       >
         <ScrollView
           bounces={false}

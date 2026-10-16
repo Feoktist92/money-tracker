@@ -5,5 +5,9 @@ jest.mock('expo-crypto', () => ({
 
 // Reanimated, Worklets и Gesture Handler — нативные модули; в Jest берём их официальные заглушки.
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+// В официальной заглушке нет useReducedMotion
+jest.mock('react-native-reanimated', () => ({
+  ...require('react-native-reanimated/mock'),
+  useReducedMotion: () => false,
+}));
 require('react-native-gesture-handler/jestSetup');
