@@ -1,5 +1,5 @@
 import { evaluateExpression, isExpression } from '../calc';
-import { formatMoney, type Kopecks } from '../money';
+import { formatMoney, type Kopecks, MAX_TRANSACTION_AMOUNT } from '../money';
 
 /** Клавиши своей клавиатуры шторки суммы. */
 export type AmountKey =
@@ -73,19 +73,18 @@ export interface AmountView {
   expression: string | null;
   /** Крупная сумма: набранное число или результат выражения. */
   display: string;
-  /** Итог в копейках; null — выражение пустое или с ошибкой (деление на ноль и т. п.). */
+  /** Итог в копейках; null — выражение пустое, с ошибкой (деление на ноль) или больше верхнего предела суммы. */
   value: Kopecks | null;
 }
 
 /** Всё, что нужно шторке для показа текущего ввода. */
 export function describeAmount(expr: string): AmountView {
   const result = evaluateExpression(expr);
-  const value = result.ok ? result.value : null;
+  const value = result.ok && result.value <= MAX_TRANSACTION_AMOUNT ? result.value : null;
   const expression = isExpression(expr) ? formatExpression(expr) : null;
-  const display =
-    expression !== null && value !== null
-      ? formatMoney(value, { currency: false, kopecks: 'auto' })
-      : formatExpression(expr) || '0';
+  let display: string;
+  if (expression === null) display = formatExpression(expr) || '0';
+  else display = value !== null ? formatMoney(value, { currency: false, kopecks: 'auto' }) : '0';
   return { expression, display, value };
 }
 

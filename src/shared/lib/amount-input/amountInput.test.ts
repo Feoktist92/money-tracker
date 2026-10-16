@@ -7,6 +7,7 @@ import {
   MAX_INTEGER_DIGITS,
   pressKey,
 } from './amountInput';
+import { MAX_TRANSACTION_AMOUNT } from '../money';
 
 const MINUS = '−';
 const NB = '\u00A0';
@@ -104,6 +105,27 @@ describe('describeAmount', () => {
     expect(isRecordable(describeAmount('0'))).toBe(false);
   });
 
+  it('ошибка в выражении: крупная сумма «0», а не повтор выражения', () => {
+    const view = describeAmount('5÷0');
+    expect(view.expression).toBe('5 ÷ 0');
+    expect(view.display).toBe('0');
+    expect(view.value).toBeNull();
+  });
+
+  it('верхний предел: больше 999 999 999,99 ₽ записать нельзя', () => {
+    const huge = describeAmount('999999999×50000');
+    expect(huge.value).toBeNull();
+    expect(huge.display).toBe('0');
+    expect(isRecordable(huge)).toBe(false);
+
+    const exact = describeAmount('999999999,99');
+    expect(exact.value).toBe(MAX_TRANSACTION_AMOUNT);
+    expect(isRecordable(exact)).toBe(true);
+
+    expect(isRecordable(describeAmount('999999999,99+0,01'))).toBe(false);
+    expect(isRecordable(describeAmount('999999999,98+0,01'))).toBe(true);
+  });
+
   it('копейки в итоге показываются, когда они есть', () => {
     expect(describeAmount('10÷4').display).toBe('2,50');
     expect(describeAmount('0,01+0,02').value).toBe(3);
@@ -123,7 +145,7 @@ describe('expressionFromKopecks', () => {
   });
 
   it('результат читается калькулятором обратно в ту же сумму', () => {
-    for (const kopecks of [1, 50, 99, 100, 12050, 12005, 124000, 99999999]) {
+    for (const kopecks of [1, 50, 99, 100, 12050, 12005, 124000, 99999999, 99999999999]) {
       expect(describeAmount(expressionFromKopecks(kopecks)).value).toBe(kopecks);
     }
   });

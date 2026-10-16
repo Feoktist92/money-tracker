@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { transactions } from '@/shared/db/schema';
 import type { Db } from '@/shared/db/types';
 import { newId } from '@/shared/lib/id';
-import type { Kopecks } from '@/shared/lib/money';
+import { type Kopecks, MAX_TRANSACTION_AMOUNT } from '@/shared/lib/money';
 import { type DateKey, isDateKey } from '@/shared/lib/period';
 
 export type NewTransaction =
@@ -23,6 +23,11 @@ export type NewTransaction =
 function assertPositiveKopecks(value: number, field: string): void {
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new RangeError(`${field}: нужна положительная сумма в целых копейках, получено ${value}`);
+  }
+  if (value > MAX_TRANSACTION_AMOUNT) {
+    throw new RangeError(
+      `${field}: сумма больше предела ${MAX_TRANSACTION_AMOUNT} коп. (999 999 999,99 ₽), получено ${value}`,
+    );
   }
 }
 

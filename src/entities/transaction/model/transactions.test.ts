@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import { transactions } from '@/shared/db/schema';
 import { createTestDb, seededIds } from '@/shared/db/testing';
+import { MAX_TRANSACTION_AMOUNT } from '@/shared/lib/money';
 
 import { addTransaction, softDeleteTransaction } from './transactions';
 
@@ -39,6 +40,37 @@ describe('addTransaction', () => {
         date: '2026-10-15',
       }),
     ).rejects.toThrow(RangeError);
+  });
+
+  it('бросает на сумме больше предела, ровно предел принимает', async () => {
+    const db = createTestDb();
+    const { account, category } = await seededIds(db);
+    const expense = (amount: number) =>
+      addTransaction(db, {
+        type: 'expense',
+        amount,
+        fromAccountId: account['Основная']!,
+        categoryId: category['Кафе']!,
+        date: '2026-10-15',
+      });
+    await expect(expense(MAX_TRANSACTION_AMOUNT + 1)).rejects.toThrow(RangeError);
+    await expect(expense(MAX_TRANSACTION_AMOUNT)).resolves.toEqual(expect.any(String));
+  });
+
+  it('предел действует и на сумму зачисления перевода', async () => {
+    const db = createTestDb();
+    const { account } = await seededIds(db);
+    const transfer = (toAmount: number) =>
+      addTransaction(db, {
+        type: 'transfer',
+        amount: 100,
+        toAmount,
+        fromAccountId: account['Основная']!,
+        toAccountId: Object.values(account).find((id) => id !== account['Основная'])!,
+        date: '2026-10-15',
+      });
+    await expect(transfer(MAX_TRANSACTION_AMOUNT + 1)).rejects.toThrow(RangeError);
+    await expect(transfer(MAX_TRANSACTION_AMOUNT)).resolves.toEqual(expect.any(String));
   });
 
   it('бросает на переводе на тот же счёт и на кривой дате', async () => {

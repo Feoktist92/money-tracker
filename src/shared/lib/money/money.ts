@@ -1,6 +1,9 @@
 /** Сумма в копейках. Всегда целое безопасное число. */
 export type Kopecks = number;
 
+/** Верхний предел суммы одной операции: 999 999 999,99 ₽ (PLAN.md, 5.1 — не больше 9 цифр целой части). */
+export const MAX_TRANSACTION_AMOUNT: Kopecks = 99_999_999_999;
+
 const NBSP = '\u00A0';
 const MINUS = '\u2212';
 const ANY_SPACE = /\s/g; // в JS \s включает U+00A0 и U+202F
