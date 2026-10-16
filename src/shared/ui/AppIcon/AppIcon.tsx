@@ -8,10 +8,12 @@ import {
   ChevronDown,
   Coffee,
   CreditCard,
+  Delete,
   Heart,
   House,
   Laptop,
   type LucideIcon,
+  MessageSquare,
   PiggyBank,
   RefreshCw,
   Shapes,
@@ -38,11 +40,13 @@ export const ICONS: Readonly<Record<string, LucideIcon>> = {
   'chevron-down': ChevronDown,
   'arrow-down-right': ArrowDownRight,
   bell: Bell,
+  delete: Delete,
+  'message-square': MessageSquare,
 };
 
 /** Неизвестное имя (например, из будущей версии базы) не роняет экран, а показывает запасной значок. */
 export function resolveIcon(name: string): LucideIcon {
-  return ICONS[name] ?? Shapes;
+  return Object.hasOwn(ICONS, name) ? ICONS[name]! : Shapes;
 }
 
 export function AppIcon({
