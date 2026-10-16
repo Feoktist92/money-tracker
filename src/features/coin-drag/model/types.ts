@@ -1,3 +1,6 @@
+/** Фаза жеста: dragging — монета в руке, returning — летит обратно в лоток, idle — жеста нет. */
+export type DragPhase = 'idle' | 'dragging' | 'returning';
+
 /** Что тянут: монета дохода (категория дохода) или монета счёта. */
 export interface DragSource {
   kind: 'income' | 'account';

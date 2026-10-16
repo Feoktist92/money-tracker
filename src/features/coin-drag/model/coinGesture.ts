@@ -15,6 +15,7 @@ export const LONG_PRESS_MS = 150;
  */
 export function createCoinGesture(begin: () => void) {
   return Gesture.Pan()
+    .maxPointers(1)
     .activateAfterLongPress(LONG_PRESS_MS)
     .onStart((event) => {
       'worklet';
@@ -35,10 +36,11 @@ export function createCoinGesture(begin: () => void) {
         scheduleOnRN(hoverDrag, key);
       }
     })
-    .onEnd(() => {
+    .onEnd((_event, success) => {
       'worklet';
       dragMotion.active.value = 0;
-      scheduleOnRN(finishDrag, dragMotion.hoverKey.value);
+      // жест отменён системой после активации (success = false): бросок не засчитывается
+      scheduleOnRN(finishDrag, success ? dragMotion.hoverKey.value : null);
     })
     .onFinalize(() => {
       'worklet';

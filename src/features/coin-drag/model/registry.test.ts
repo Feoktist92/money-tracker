@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 import type { View } from 'react-native';
 
-import { collectCandidates, measureTargets, registerTarget } from './registry';
+import { collectCandidates, MEASURE_TIMEOUT_MS, measureTargets, measureView, registerTarget } from './registry';
 import type { DragSource, DropTargetInfo } from './types';
 
 const fakeRef = (box: [number, number, number, number] | null): RefObject<View | null> =>
@@ -15,8 +15,12 @@ const main: DropTargetInfo = { kind: 'account', id: 'main', name: 'Основн�
 const account: DragSource = { kind: 'account', id: 'main', name: 'Основная', icon: 'credit-card', color: 'violet' };
 const income: DragSource = { kind: 'income', id: 'salary', name: 'Зарплата', icon: 'arrow-down-to-line' };
 
+const silentRef = (): RefObject<View | null> =>
+  ({ current: { measureInWindow: () => undefined } as unknown as View }) as RefObject<View | null>;
+
 let cleanups: (() => void)[] = [];
 afterEach(() => {
+  jest.useRealTimers();
   cleanups.forEach((fn) => fn());
   cleanups = [];
 });
@@ -74,5 +78,21 @@ describe('registry', () => {
     register(food, null);
     register(savings, [0, 0, 0, 40]);
     expect(await measureTargets(collectCandidates(account))).toEqual([]);
+  });
+
+  it('measureView не зависает, если measureInWindow не отвечает', async () => {
+    jest.useFakeTimers();
+    const pending = measureView(silentRef());
+    jest.advanceTimersByTime(MEASURE_TIMEOUT_MS);
+    expect(await pending).toBeNull();
+  });
+
+  it('measureTargets отбрасывает не ответившую цель и оставляет остальные', async () => {
+    jest.useFakeTimers();
+    register(food, [12, 4, 194, 309]);
+    cleanups.push(registerTarget(savings, silentRef()));
+    const pending = measureTargets(collectCandidates(account));
+    jest.advanceTimersByTime(MEASURE_TIMEOUT_MS);
+    expect(await pending).toEqual([{ key: 'category:food', x: 12, y: 4, width: 194, height: 309 }]);
   });
 });

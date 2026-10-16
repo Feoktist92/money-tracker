@@ -19,6 +19,26 @@ describe('dragStore', () => {
     expect(Object.keys(state().candidates)).toEqual(['category:food', 'account:savings']);
   });
 
+  it('begin во время жеста игнорируется (монета не подменяется)', () => {
+    const other: DragSource = { kind: 'income', id: 'salary', name: 'Зарплата', icon: 'arrow-down-to-line' };
+    state().begin(source, [food]);
+    state().begin(other, [savings]);
+    expect(state().source).toEqual(source);
+    expect(Object.keys(state().candidates)).toEqual(['category:food']);
+  });
+
+  it('begin во время возврата разрешён и сбрасывает прежний результат', () => {
+    const other: DragSource = { kind: 'income', id: 'salary', name: 'Зарплата', icon: 'arrow-down-to-line' };
+    useDragStore.setState({ dropped: { source, target: food } });
+    state().begin(source, [food]);
+    state().finish(null);
+    expect(state().phase).toBe('returning');
+    state().begin(other, [savings]);
+    expect(state().phase).toBe('dragging');
+    expect(state().source).toEqual(other);
+    expect(state().dropped).toBeNull();
+  });
+
   it('setHover работает только во время жеста', () => {
     state().setHover('category:food');
     expect(state().hoverKey).toBeNull();

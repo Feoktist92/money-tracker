@@ -1,15 +1,14 @@
 import { create } from 'zustand';
 
-import type { DragSource, DropTargetInfo } from './types';
+import type { DragPhase, DragSource, DropTargetInfo } from './types';
 import { targetKey } from './types';
+
+export type { DragPhase };
 
 export interface DropResult {
   source: DragSource;
   target: DropTargetInfo;
 }
-
-/** Фаза жеста: dragging — монета в руке, returning — летит обратно в лоток, idle — жеста нет. */
-export type DragPhase = 'idle' | 'dragging' | 'returning';
 
 interface DragState {
   phase: DragPhase;
@@ -33,13 +32,17 @@ const idle = { phase: 'idle', source: null, hoverKey: null, candidates: {} } as 
 export const useDragStore = create<DragState>((set, get) => ({
   ...idle,
   dropped: null,
-  begin: (source, candidates) =>
+  begin: (source, candidates) => {
+    // монета уже в руке: второй begin не подменяет источник; во время возврата новый жест разрешён
+    if (get().phase === 'dragging') return;
     set({
       phase: 'dragging',
       source,
       hoverKey: null,
       candidates: Object.fromEntries(candidates.map((target) => [targetKey(target), target])),
-    }),
+      dropped: null,
+    });
+  },
   setHover: (key) => {
     if (get().phase === 'dragging') set({ hoverKey: key });
   },

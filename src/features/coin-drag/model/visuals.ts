@@ -1,10 +1,10 @@
 import { canDrop } from './rules';
-import type { DragSource, DropTargetInfo } from './types';
+import type { DragPhase, DragSource, DropTargetInfo } from './types';
 import { targetKey } from './types';
 
 /** Нужная для вида часть состояния жеста. */
 export interface DragSnapshot {
-  phase: 'idle' | 'dragging' | 'returning';
+  phase: DragPhase;
   source: DragSource | null;
   hoverKey: string | null;
 }

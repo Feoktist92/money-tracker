@@ -13,7 +13,12 @@ import type { DragSource } from './types';
  * Начало жеста (JS-поток): запоминает допустимые цели, даёт хаптик и измеряет цели и исходную монету в окне.
  * Цели измеряются именно здесь, в момент активации, а не по onLayout: после прокрутки мозаики координаты устарели бы.
  */
+let generation = 0;
+
 export async function startDrag(source: DragSource, sourceRef: RefObject<View | null>): Promise<void> {
+  // второй жест при монете в руке игнорируется: источник не подменяется
+  if (useDragStore.getState().phase === 'dragging') return;
+  const drag = ++generation;
   const candidates = collectCandidates(source);
   useDragStore.getState().begin(
     source,
@@ -22,13 +27,16 @@ export async function startDrag(source: DragSource, sourceRef: RefObject<View | 
   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
   const [rects, origin] = await Promise.all([measureTargets(candidates), measureView(sourceRef)]);
-  // палец мог уже отпустить монету, пока шло измерение
-  if (useDragStore.getState().phase !== 'dragging') return;
-  dragMotion.rects.value = rects;
+  // пока шло измерение, началось следующее перетаскивание: его данные нельзя затирать запоздалыми
+  if (drag !== generation) return;
+  // исходный слот нужен и тогда, когда палец уже отпустил монету: призрак летит именно туда
   if (origin) {
     dragMotion.originX.value = origin.x + origin.width / 2;
     dragMotion.originY.value = origin.y + origin.height / 2;
   }
+  // цели нужны только пока монета в руке
+  if (useDragStore.getState().phase !== 'dragging') return;
+  dragMotion.rects.value = rects;
 }
 
 /** Монета оказалась над другой целью (или ушла с цели): слабый хаптик «щелчка». */

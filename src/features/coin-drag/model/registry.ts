@@ -35,7 +35,10 @@ export function collectCandidates(source: DragSource): RegisteredTarget[] {
   return [...targets.values()].filter((entry) => canDrop(source, entry.info));
 }
 
-/** Положение вида в координатах окна; null, если вид уже размонтирован. */
+/** Сколько ждать ответа measureInWindow: у отсоединённого вида колбэк может не прийти никогда. */
+export const MEASURE_TIMEOUT_MS = 300;
+
+/** Положение вида в координатах окна; null, если вид размонтирован или не ответил за MEASURE_TIMEOUT_MS. */
 export function measureView(ref: RefObject<View | null>): Promise<WindowBox | null> {
   return new Promise((resolve) => {
     const node = ref.current;
@@ -43,7 +46,11 @@ export function measureView(ref: RefObject<View | null>): Promise<WindowBox | nu
       resolve(null);
       return;
     }
-    node.measureInWindow((x, y, width, height) => resolve({ x, y, width, height }));
+    const timer = setTimeout(() => resolve(null), MEASURE_TIMEOUT_MS);
+    node.measureInWindow((x, y, width, height) => {
+      clearTimeout(timer);
+      resolve({ x, y, width, height });
+    });
   });
 }
 

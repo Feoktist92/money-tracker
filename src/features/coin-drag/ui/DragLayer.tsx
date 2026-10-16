@@ -11,6 +11,8 @@ import { GHOST, returnGhost, SHIFT } from '../model/dragActions';
 import { useDragStore } from '../model/dragStore';
 import { dragMotion } from '../model/motion';
 
+const LABEL_WIDTH = 260;
+
 const isCoinColor = (value: string, palette: Record<CoinColor, string>): value is CoinColor =>
   Object.hasOwn(palette, value);
 
@@ -45,10 +47,12 @@ export function DragLayer() {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <Animated.View style={[styles.anchor, animated]}>
-        <View style={[styles.label, { backgroundColor: t.ink }]}>
-          <AppText variant="label" color={t.ground} numberOfLines={1}>
-            {label}
-          </AppText>
+        <View style={styles.labelBox}>
+          <View style={[styles.label, { backgroundColor: t.ink }]}>
+            <AppText variant="label" color={t.ground} numberOfLines={1}>
+              {label}
+            </AppText>
+          </View>
         </View>
         <View
           style={[
@@ -79,12 +83,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 14 },
     elevation: 12,
   },
+  // обёртка шире якоря в 64dp: иначе Yoga обрезает ширину метки до якоря; сама метка обнимает текст
+  labelBox: { position: 'absolute', bottom: GHOST + 8, left: 0, width: LABEL_WIDTH, alignItems: 'flex-start' },
   label: {
-    position: 'absolute',
-    bottom: GHOST + 8,
-    left: 0,
+    alignSelf: 'flex-start',
     minWidth: GHOST,
-    maxWidth: 220,
+    maxWidth: LABEL_WIDTH,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
