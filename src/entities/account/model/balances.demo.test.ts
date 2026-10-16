@@ -10,5 +10,4 @@ it('балансы демо-данных — как в лотке макета',
   const balances = await getAccountBalances(db);
   expect(balances[account['Основная']!]).toBe(4_821_500);
   expect(balances[account['Накопления']!]).toBe(1_264_000);
-  expect(balances[account['Наличные']!]).toBe(350_000);
 });

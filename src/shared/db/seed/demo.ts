@@ -11,7 +11,7 @@ type NewTransactionRow = typeof transactions.$inferInsert;
 
 /**
  * Данные главного экрана макета C («Монеты — варианты дизайна», C-main): осталось 22 390 ₽,
- * перенос 700 (Развлечения) и 1 800 (Здоровье), счета 48 215 / 12 640 / 3 500 ₽.
+ * перенос 700 (Развлечения) и 1 800 (Здоровье), счета 48 215 / 12 640 ₽.
  * Стирает операции и переопределения лимитов, ставит начало месяца на 1-е. Только для разработки.
  */
 export async function seedDemo(db: Db, today: DateKey): Promise<void> {
@@ -71,16 +71,12 @@ export async function seedDemo(db: Db, today: DateKey): Promise<void> {
       .run();
 
     tx.update(accounts)
-      .set({ initialBalance: 1_232_500 })
+      .set({ initialBalance: 882_500 })
       .where(eq(accounts.id, acc('Основная')))
       .run();
     tx.update(accounts)
       .set({ initialBalance: 264_000 })
       .where(eq(accounts.id, acc('Накопления')))
-      .run();
-    tx.update(accounts)
-      .set({ initialBalance: 0 })
-      .where(eq(accounts.id, acc('Наличные')))
       .run();
 
     tx.insert(settings)
@@ -126,12 +122,11 @@ export async function seedDemo(db: Db, today: DateKey): Promise<void> {
         income('Зарплата', 45000, now(0)),
         income('Подработка', 15000, now(9)),
         transfer('Накопления', 10000, now(1)),
-        transfer('Наличные', 5000, now(2)),
         expense('Продукты', 3640, now(1)),
         expense('Продукты', 4200, now(6)),
         expense('Продукты', 3400, now(13)),
         expense('Дом и ЖКХ', 9120, now(4)),
-        expense('Кафе', 1500, now(5), acc('Наличные')),
+        expense('Кафе', 1500, now(5)),
         expense('Кафе', 6360, now(11)),
         expense('Одежда', 5200, now(8)),
         expense('Транспорт', 3410, now(3)),

@@ -169,7 +169,7 @@ describe('getBudgetOverview — периоды и лимиты', () => {
       type: 'transfer',
       amount: 500_000,
       fromAccountId: account['Основная']!,
-      toAccountId: account['Наличные']!,
+      toAccountId: account['Накопления']!,
       date: TODAY,
     });
     expect((await getBudgetOverview(db, TODAY, SETTINGS)).totalSpent).toBe(0);

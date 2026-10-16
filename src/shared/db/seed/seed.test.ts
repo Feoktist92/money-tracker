@@ -5,10 +5,10 @@ import { seedDefaults } from './seed';
 import { createTestDb } from '../testing';
 
 describe('seedDefaults', () => {
-  it('на пустой базе создаёт 3 счёта и 10 категорий', async () => {
+  it('на пустой базе создаёт 2 счёта и 10 категорий', async () => {
     const db = createTestDb();
     expect(await seedDefaults(db)).toBe(true);
-    expect(await db.$count(accounts)).toBe(3);
+    expect(await db.$count(accounts)).toBe(2);
     expect(await db.$count(categories)).toBe(10);
     expect(await db.$count(categories, eq(categories.kind, 'expense'))).toBe(8);
   });
@@ -24,7 +24,7 @@ describe('seedDefaults', () => {
     const db = createTestDb();
     await seedDefaults(db);
     expect(await seedDefaults(db)).toBe(false);
-    expect(await db.$count(accounts)).toBe(3);
+    expect(await db.$count(accounts)).toBe(2);
     expect(await db.$count(categories)).toBe(10);
   });
 

@@ -79,7 +79,7 @@ describe('addTransaction', () => {
     const id = await addTransaction(db, {
       type: 'expense',
       amount: 100,
-      fromAccountId: account['Наличные']!,
+      fromAccountId: account['Накопления']!,
       categoryId: category['Кафе']!,
       date: '2026-10-15',
     });

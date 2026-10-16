@@ -14,7 +14,6 @@ type NewCategory = typeof categories.$inferInsert;
 export const DEFAULT_ACCOUNTS: Omit<NewAccount, 'id'>[] = [
   { name: 'Основная', type: 'card', icon: 'credit-card', color: 'violet', sortOrder: 0 },
   { name: 'Накопления', type: 'savings', icon: 'piggy-bank', color: 'teal', sortOrder: 1 },
-  { name: 'Наличные', type: 'cash', icon: 'banknote', color: 'amber', sortOrder: 2 },
 ];
 
 export const DEFAULT_CATEGORIES: Omit<NewCategory, 'id'>[] = [

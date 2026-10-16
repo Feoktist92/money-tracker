@@ -9,11 +9,10 @@ describe('getAccountBalances', () => {
   it('без операций — начальные остатки (по умолчанию 0)', async () => {
     const db = createTestDb();
     const { account } = await seededIds(db);
-    await db.update(accounts).set({ initialBalance: 50000 }).where(eq(accounts.id, account['Наличные']!));
+    await db.update(accounts).set({ initialBalance: 50000 }).where(eq(accounts.id, account['Накопления']!));
     expect(await getAccountBalances(db)).toEqual({
       [account['Основная']!]: 0,
-      [account['Накопления']!]: 0,
-      [account['Наличные']!]: 50000,
+      [account['Накопления']!]: 50000,
     });
   });
 
