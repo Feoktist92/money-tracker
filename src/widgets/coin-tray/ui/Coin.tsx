@@ -30,14 +30,19 @@ export function Coin(props: CoinProps) {
   const asTarget: DropTargetInfo | null = income ? null : { kind: 'account', id: props.id, name: props.name };
   const { ref, gesture, visual } = useCoinDrag(source, asTarget);
 
-  const pillStyle =
+  // borderWidth пилюли фиксирован во всех состояниях: иначе Yoga сдвигает соседние монеты.
+  // Рамки жеста рисует оверлей ниже, здесь меняется только цвет.
+  const pillTone =
     visual === 'source'
-      ? { borderWidth: 2, borderStyle: 'dashed' as const, borderColor: t.divider }
+      ? income
+        ? { borderColor: 'transparent' }
+        : { backgroundColor: 'transparent' }
       : visual === 'hover'
-        ? { borderWidth: 3, borderColor: t.dropTarget.border, backgroundColor: t.dropTarget.tile }
+        ? { backgroundColor: t.dropTarget.tile }
         : income
-          ? { borderWidth: 2, borderColor: t.accent }
+          ? { borderColor: t.accent }
           : { backgroundColor: t.surface };
+  const pillStyle = income ? { borderWidth: 2, ...pillTone } : pillTone;
 
   return (
     <GestureDetector gesture={gesture}>
@@ -68,6 +73,15 @@ export function Coin(props: CoinProps) {
             {income ? 'доход' : formatMoney(props.balance, { kopecks: 'never' })}
           </AppText>
         </View>
+        {visual === 'source' && (
+          <View
+            pointerEvents="none"
+            style={[styles.frame, { borderWidth: 2, borderStyle: 'dashed', borderColor: t.divider }]}
+          />
+        )}
+        {visual === 'hover' && (
+          <View pointerEvents="none" style={[styles.frame, { borderWidth: 3, borderColor: t.dropTarget.border }]} />
+        )}
       </View>
     </GestureDetector>
   );
@@ -95,6 +109,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   text: { maxWidth: 140 },
+  frame: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 28 },
   dimmed: { opacity: 0.35 },
   hidden: { opacity: 0 },
   name: { fontSize: 13, lineHeight: 16 },

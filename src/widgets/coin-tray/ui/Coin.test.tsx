@@ -52,42 +52,77 @@ describe('Coin', () => {
   describe('во время перетаскивания', () => {
     const main = { kind: 'account', id: 'main', name: 'Основная', icon: 'credit-card', color: 'violet' } as const;
     const salary = { kind: 'income', id: 'salary', name: 'Зарплата', icon: 'arrow-down-to-line' } as const;
-    const pill = (element: React.ReactElement) => {
+    const accountCoin = <Coin kind="account" id="main" name="Основная" icon="credit-card" color="violet" balance={0} />;
+    const incomeCoin = <Coin kind="income" id="salary" name="Зарплата" icon="arrow-down-to-line" />;
+    const mount = (element: React.ReactElement) => {
       let tree!: ReturnType<typeof create>;
       act(() => {
         tree = create(element);
       });
-      return StyleSheet.flatten(tree.root.findByProps({ accessible: true }).props.style);
+      return tree;
     };
-    const incomeCoin = <Coin kind="income" id="salary" name="Зарплата" icon="arrow-down-to-line" />;
-    const accountCoin = <Coin kind="account" id="main" name="Основная" icon="credit-card" color="violet" balance={0} />;
-
-    afterEach(() => {
+    const pill = (tree: ReturnType<typeof create>) =>
+      StyleSheet.flatten(tree.root.findByProps({ accessible: true }).props.style);
+    // Оверлеи рамки жеста — это View с pointerEvents="none" внутри пилюли.
+    const overlays = (tree: ReturnType<typeof create>) =>
+      tree.root.findAllByProps({ pointerEvents: 'none' }).map((node) => StyleSheet.flatten(node.props.style));
+    const resetDrag = () =>
       act(() => {
         useDragStore.setState({ phase: 'idle', source: null, hoverKey: null, candidates: {}, dropped: null });
       });
-    });
 
-    it('исходная монета — пунктирный слот', () => {
+    afterEach(resetDrag);
+
+    it('исходная монета — пунктирный оверлей, сама пилюля без рамки', () => {
       act(() => useDragStore.getState().begin(main, []));
-      expect(pill(accountCoin).borderStyle).toBe('dashed');
+      const tree = mount(accountCoin);
+      expect(overlays(tree)).toContainEqual(expect.objectContaining({ borderStyle: 'dashed', borderWidth: 2 }));
+      expect(pill(tree).borderStyle).toBeUndefined();
     });
 
     it('чужая монета дохода тускнеет: она не цель', () => {
       act(() => useDragStore.getState().begin(main, []));
-      expect(pill(incomeCoin).opacity).toBe(0.35);
+      expect(pill(mount(incomeCoin)).opacity).toBe(0.35);
     });
 
-    it('монета счёта при броске дохода — цель, под пальцем получает рамку', () => {
+    it('монета счёта при броске дохода — цель, под пальцем получает рамку-оверлей', () => {
       act(() => useDragStore.getState().begin(salary, []));
-      expect(pill(accountCoin).opacity).toBeUndefined();
+      expect(pill(mount(accountCoin)).opacity).toBeUndefined();
       act(() => useDragStore.getState().setHover('account:main'));
-      expect(pill(accountCoin).borderWidth).toBe(3);
+      const tree = mount(accountCoin);
+      expect(overlays(tree)).toContainEqual(expect.objectContaining({ borderWidth: 3 }));
+      expect(pill(tree).borderWidth).toBeUndefined();
     });
 
     it('без жеста вид обычный', () => {
-      expect(pill(accountCoin).borderStyle).toBeUndefined();
-      expect(pill(accountCoin).opacity).toBeUndefined();
+      const tree = mount(accountCoin);
+      expect(pill(tree).borderStyle).toBeUndefined();
+      expect(pill(tree).opacity).toBeUndefined();
+      expect(overlays(tree)).toHaveLength(0);
+    });
+
+    it('размер монеты не меняется в состояниях жеста', () => {
+      const sized = (style: ReturnType<typeof pill>) => ({
+        borderWidth: style.borderWidth,
+        paddingLeft: style.paddingLeft,
+        paddingRight: style.paddingRight,
+        minHeight: style.minHeight,
+      });
+      const rest = pill(mount(accountCoin));
+      expect(rest.borderWidth).toBeUndefined();
+      expect(rest.minHeight).toBe(56);
+
+      act(() => useDragStore.getState().begin(main, []));
+      const source = mount(accountCoin);
+      expect(sized(pill(source))).toEqual(sized(rest));
+      expect(overlays(source)).toContainEqual(expect.objectContaining({ borderStyle: 'dashed' }));
+
+      resetDrag();
+      act(() => useDragStore.getState().begin(salary, []));
+      act(() => useDragStore.getState().setHover('account:main'));
+      const hover = mount(accountCoin);
+      expect(sized(pill(hover))).toEqual(sized(rest));
+      expect(overlays(hover)).toContainEqual(expect.objectContaining({ borderWidth: 3 }));
     });
   });
 });
