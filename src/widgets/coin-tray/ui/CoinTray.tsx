@@ -15,7 +15,7 @@ export interface TrayAccount extends TrayIncome {
   balance: Kopecks;
 }
 
-/** Лоток монет (C-main): горизонтальная лента, сначала монеты дохода, затем счета. Пока только вид, без жестов. */
+/** Лоток монет (C-main): горизонтальная лента, сначала монеты дохода, затем счета. Монеты перетаскиваются долгим нажатием. */
 export function CoinTray({ income, accounts }: { income: TrayIncome[]; accounts: TrayAccount[] }) {
   return (
     <ScrollView
@@ -25,12 +25,13 @@ export function CoinTray({ income, accounts }: { income: TrayIncome[]; accounts:
       contentContainerStyle={styles.content}
     >
       {income.map((coin) => (
-        <Coin key={coin.id} kind="income" name={coin.name} icon={coin.icon} />
+        <Coin key={coin.id} kind="income" id={coin.id} name={coin.name} icon={coin.icon} />
       ))}
       {accounts.map((coin) => (
         <Coin
           key={coin.id}
           kind="account"
+          id={coin.id}
           name={coin.name}
           icon={coin.icon}
           color={coin.color}

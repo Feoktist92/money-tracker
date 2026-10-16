@@ -1,5 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
+import { useDropTarget } from '@/features/coin-drag';
+
 import type { BudgetRow } from '@/entities/budget';
 import { formatMoney } from '@/shared/lib/money';
 import { radii } from '@/shared/theme/tokens';
@@ -34,14 +36,17 @@ export function Tile({
   fontScale: number;
 }) {
   const t = useTokens();
+  const { ref, visual } = useDropTarget({ kind: 'category', id: row.categoryId, name: row.name });
   const plan = planTileText({ width: rect.width, height: rect.height, fontScale, hasCarry: row.carryIn !== 0 });
 
-  const palette =
+  const base =
     row.state === 'over'
       ? { background: t.over.tile, fill: null, ink: t.over.text, secondary: t.over.text, carry: t.over.text }
       : row.state === 'near'
         ? { background: t.near.tile, fill: t.near.fill, ink: t.near.text, secondary: t.near.text, carry: t.near.text }
         : { background: t.tile, fill: t.fill, ink: t.ink, secondary: t.inkSecondary, carry: t.carry };
+  // Плитка под монетой: фон и заливка из токенов drop-target, поверх — рамка accent 3 px
+  const palette = visual === 'hover' ? { ...base, background: t.dropTarget.tile, fill: t.dropTarget.fill } : base;
 
   const fillPercent =
     palette.fill && row.hasLimit && row.available > 0 ? Math.min(100, (row.spent / row.available) * 100) : 0;
@@ -50,11 +55,14 @@ export function Tile({
 
   return (
     <View
+      ref={ref}
+      collapsable={false}
       accessible
       accessibilityLabel={tileLabel(row)}
       style={[
         styles.tile,
         { left: rect.x, top: rect.y, width: rect.width, height: rect.height, backgroundColor: palette.background },
+        visual === 'dimmed' && styles.dimmed,
       ]}
     >
       {fillPercent > 0 && (
@@ -117,6 +125,9 @@ export function Tile({
           )}
         </View>
       )}
+      {visual === 'hover' && (
+        <View pointerEvents="none" style={[styles.dropBorder, { borderColor: t.dropTarget.border }]} />
+      )}
     </View>
   );
 }
@@ -124,6 +135,8 @@ export function Tile({
 const styles = StyleSheet.create({
   tile: { position: 'absolute', borderRadius: radii.tile, overflow: 'hidden' },
   fill: { position: 'absolute', left: 0, right: 0, bottom: 0 },
+  dimmed: { opacity: 0.55 },
+  dropBorder: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderWidth: 3, borderRadius: radii.tile },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   shrink: { flexShrink: 1 },
   shrinkBox: { flexShrink: 1, minWidth: 0 },

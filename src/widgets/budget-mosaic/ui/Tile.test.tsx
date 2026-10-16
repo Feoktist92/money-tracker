@@ -3,6 +3,7 @@ import { act, create } from 'react-test-renderer';
 import { StyleSheet, Text } from 'react-native';
 
 import type { BudgetRow } from '@/entities/budget';
+import { useDragStore } from '@/features/coin-drag';
 
 import { Tile } from './Tile';
 
@@ -113,5 +114,39 @@ describe('Tile', () => {
     const style = tree.root.findByProps({ accessible: true }).props.style;
     expect(JSON.stringify(style)).toContain('"left":12');
     expect(JSON.stringify(style)).toContain('"height":163');
+  });
+
+  describe('во время перетаскивания монеты', () => {
+    const account = { kind: 'account', id: 'main', name: 'Основная', icon: 'credit-card', color: 'violet' } as const;
+    const income = { kind: 'income', id: 'salary', name: 'Зарплата', icon: 'arrow-down-to-line' } as const;
+    const target = { kind: 'category', id: 'c', name: 'Продукты' } as const;
+    const root = (tree: ReturnType<typeof create>) => tree.root.findByProps({ accessible: true });
+    const flat = (tree: ReturnType<typeof create>) => StyleSheet.flatten(root(tree).props.style);
+
+    afterEach(() => {
+      act(() => {
+        useDragStore.setState({ phase: 'idle', source: null, hoverKey: null, candidates: {}, dropped: null });
+      });
+    });
+
+    it('доход в руке: плитка расхода тускнеет, бросить на неё нельзя', () => {
+      act(() => useDragStore.getState().begin(income, []));
+      expect(flat(render(row({})).tree).opacity).toBe(0.55);
+    });
+
+    it('счёт в руке: плитка остаётся яркой, а под пальцем получает рамку', () => {
+      act(() => useDragStore.getState().begin(account, [target]));
+      const plain = render(row({}));
+      expect(flat(plain.tree).opacity).toBeUndefined();
+      expect(plain.tree.root.findAllByProps({ pointerEvents: 'none' })).toHaveLength(0);
+      act(() => useDragStore.getState().setHover('category:c'));
+      const hovered = render(row({}));
+      expect(hovered.tree.root.findAllByProps({ pointerEvents: 'none' }).length).toBeGreaterThan(0);
+    });
+
+    it('без жеста вид обычный', () => {
+      const { tree } = render(row({}));
+      expect(flat(tree).opacity).toBeUndefined();
+    });
   });
 });
