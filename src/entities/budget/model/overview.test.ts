@@ -4,7 +4,7 @@ import { seedDemo } from '@/shared/db/seed';
 import { categories, limitOverrides, transactions } from '@/shared/db/schema';
 import { createTestDb, insertTestTransaction, seededIds } from '@/shared/db/testing';
 
-import { type BudgetSettings, getBudgetOverview, tileState } from './overview';
+import { type BudgetRow, type BudgetSettings, getBudgetOverview, projectExpense, tileState } from './overview';
 
 const TODAY = '2026-10-15';
 const SETTINGS: BudgetSettings = { monthStartDay: 1, nearThreshold: 0.9 };
@@ -189,5 +189,39 @@ describe('tileState', () => {
     [-5_000, 0, 'over'],
   ])('available %p, spent %p → %p', (available, spent, expected) => {
     expect(tileState(available, spent, 0.9)).toBe(expected);
+  });
+});
+
+describe('projectExpense', () => {
+  const base: BudgetRow = {
+    categoryId: 'c',
+    name: 'Продукты',
+    icon: 'shopping-basket',
+    hasLimit: true,
+    limit: 1_800_000,
+    carryIn: 0,
+    available: 1_800_000,
+    spent: 1_124_000,
+    remaining: 676_000,
+    state: 'normal',
+  };
+
+  it('прибавляет трату и уменьшает остаток, исходная строка не меняется', () => {
+    const next = projectExpense(base, 124_000, 0.9);
+    expect(next).toMatchObject({ spent: 1_248_000, remaining: 552_000, state: 'normal' });
+    expect(base.spent).toBe(1_124_000);
+  });
+
+  it('состояние пересчитывается: «почти» с 90%, «перерасход» выше доступного', () => {
+    expect(projectExpense(base, 500_000, 0.9).state).toBe('near');
+    const over = projectExpense(base, 800_000, 0.9);
+    expect(over).toMatchObject({ remaining: -124_000, state: 'over' });
+  });
+
+  it('категория без лимита остаётся «обычной», тратится только spent', () => {
+    const free: BudgetRow = { ...base, hasLimit: false, limit: 0, available: 0, spent: 5_000, remaining: 0 };
+    const next = projectExpense(free, 10_000, 0.9);
+    expect(next.state).toBe('normal');
+    expect(next.spent).toBe(15_000);
   });
 });

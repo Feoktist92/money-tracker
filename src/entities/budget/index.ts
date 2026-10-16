@@ -3,6 +3,7 @@ export {
   type BudgetRow,
   type BudgetSettings,
   getBudgetOverview,
+  projectExpense,
   type TileState,
   tileState,
 } from './model/overview';

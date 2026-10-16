@@ -130,3 +130,14 @@ export async function getBudgetOverview(db: Db, today: DateKey, settings: Budget
     perDay: Math.max(0, divideKopecks(totalRemaining, daysLeft)),
   };
 }
+
+/** Как изменится плитка, если записать ещё один расход на `amount` (превью шторки ввода суммы). */
+export function projectExpense(row: BudgetRow, amount: Kopecks, nearThreshold: number): BudgetRow {
+  const spent = row.spent + amount;
+  return {
+    ...row,
+    spent,
+    remaining: row.remaining - amount,
+    state: row.hasLimit ? tileState(row.available, spent, nearThreshold) : 'normal',
+  };
+}
