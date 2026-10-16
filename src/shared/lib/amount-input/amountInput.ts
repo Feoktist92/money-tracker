@@ -61,7 +61,7 @@ export function formatExpression(expr: string): string {
   return expr
     .replace(/\d+(?:,\d*)?/g, (number) => {
       const [integer = '', fraction] = number.split(',');
-      const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
       return fraction === undefined ? grouped : `${grouped},${fraction}`;
     })
     .replace(/([+−×÷])/g, ' $1 ')

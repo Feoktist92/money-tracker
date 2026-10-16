@@ -9,7 +9,7 @@ import {
 } from './amountInput';
 
 const MINUS = '−';
-const NB = ' ';
+const NB = '\u00A0';
 
 /** Набрать строку клавиш подряд. */
 const type = (...keys: AmountKey[]) => keys.reduce((expr, key) => pressKey(expr, key), '');
