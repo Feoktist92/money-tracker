@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { AmountKey } from '@/shared/lib/amount-input';
@@ -25,9 +26,17 @@ const SPOKEN: Readonly<Partial<Record<AmountKey, string>>> = {
   back: 'Стереть',
 };
 
-/** Своя клавиатура шторки суммы: цифры, запятая, действия, стереть (долгое нажатие — очистить). Ключи 54 dp, радиус 16. */
+/** Своя клавиатура шторки суммы (каждое нажатие даёт лёгкий хаптик): цифры, запятая, действия, стереть (долгое нажатие — очистить). Ключи 54 dp, радиус 16. */
 export function Keypad({ onPress }: { onPress: (key: AmountKey) => void }) {
   const t = useTokens();
+  const press = (key: AmountKey) => {
+    void Haptics.selectionAsync().catch(() => undefined);
+    onPress(key);
+  };
+  const clear = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+    onPress('clear');
+  };
   return (
     <View style={styles.grid}>
       {ROWS.map((row) => (
@@ -39,8 +48,8 @@ export function Keypad({ onPress }: { onPress: (key: AmountKey) => void }) {
                 key={key}
                 accessibilityRole="button"
                 accessibilityLabel={SPOKEN[key] ?? key}
-                onPress={() => onPress(key)}
-                onLongPress={key === 'back' ? () => onPress('clear') : undefined}
+                onPress={() => press(key)}
+                onLongPress={key === 'back' ? clear : undefined}
                 // Долгое нажатие недоступно скринридеру жестом: выносим «Очистить» в список действий элемента
                 accessibilityActions={key === 'back' ? [{ name: 'longpress', label: 'Очистить' }] : undefined}
                 onAccessibilityAction={

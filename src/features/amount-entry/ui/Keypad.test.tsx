@@ -1,7 +1,17 @@
+import * as Haptics from 'expo-haptics';
+
 import type { AmountKey } from '@/shared/lib/amount-input';
 
 import { Keypad } from './Keypad';
 import { pressable, render, tap } from './testUtils';
+
+jest.mock('expo-haptics', () => ({
+  selectionAsync: jest.fn(() => Promise.resolve()),
+  impactAsync: jest.fn(() => Promise.resolve()),
+  ImpactFeedbackStyle: { Medium: 'medium' },
+}));
+
+beforeEach(() => jest.clearAllMocks());
 
 describe('Keypad', () => {
   it('шестнадцать клавиш: цифры, запятая, четыре действия, стереть', () => {
@@ -61,5 +71,22 @@ describe('Keypad', () => {
     onPress.mockClear();
     back.props.onAccessibilityAction({ nativeEvent: { actionName: 'activate' } });
     expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('каждое нажатие даёт лёгкий хаптик, долгое «Стереть» — удар посильнее', () => {
+    const tree = render(<Keypad onPress={jest.fn()} />);
+    tap(tree, '7');
+    tap(tree, 'Плюс');
+    expect(Haptics.selectionAsync).toHaveBeenCalledTimes(2);
+    pressable(tree, 'Стереть').props.onLongPress();
+    expect(Haptics.impactAsync).toHaveBeenCalledWith('medium');
+  });
+
+  it('сбой вибромотора не мешает вводу', () => {
+    (Haptics.selectionAsync as jest.Mock).mockReturnValueOnce(Promise.reject(new Error('нет мотора')));
+    const onPress = jest.fn();
+    const tree = render(<Keypad onPress={onPress} />);
+    tap(tree, '5');
+    expect(onPress).toHaveBeenCalledWith('5');
   });
 });
