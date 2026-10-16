@@ -76,7 +76,14 @@ export function Tile({
         <View style={[styles.rowMode, { paddingHorizontal: plan.padHorizontal }]}>
           <View style={[styles.nameRow, styles.shrinkBox]}>
             <AppIcon name={row.icon} size={16} color={palette.ink} />
-            <AppText variant="tileName" color={palette.ink} numberOfLines={1} style={styles.shrink}>
+            <AppText
+              variant="tileName"
+              color={palette.ink}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+              style={styles.shrink}
+            >
               {row.name}
             </AppText>
           </View>
@@ -95,7 +102,14 @@ export function Tile({
         <View style={{ paddingVertical: plan.padVertical, paddingHorizontal: plan.padHorizontal, gap: 2 }}>
           <View style={styles.nameRow}>
             <AppIcon name={row.icon} size={18} color={palette.ink} />
-            <AppText variant="tileName" color={palette.ink} numberOfLines={1} style={styles.shrink}>
+            <AppText
+              variant="tileName"
+              color={palette.ink}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+              style={styles.shrink}
+            >
               {row.name}
             </AppText>
           </View>
@@ -115,14 +129,27 @@ export function Tile({
             {amount}
           </AppText>
           {plan.showCaption && (
-            <AppText variant="caption" color={palette.secondary} numberOfLines={1}>
+            <AppText
+              variant="caption"
+              color={palette.secondary}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+            >
               {caption}
             </AppText>
           )}
           {plan.showCarry && (
             <View style={styles.carryRow}>
               <AppIcon name="arrow-down-right" size={12} color={palette.carry} strokeWidth={2} />
-              <AppText variant="caption" weight={600} color={palette.carry} numberOfLines={1}>
+              <AppText
+                variant="caption"
+                weight={600}
+                color={palette.carry}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
                 {formatMoney(row.carryIn, { sign: 'always', kopecks: 'never', currency: false })} с {carryFrom}
               </AppText>
             </View>
@@ -141,9 +168,9 @@ const styles = StyleSheet.create({
   fill: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   dimmed: { opacity: 0.55 },
   dropBorder: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderWidth: 3, borderRadius: radii.tile },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   shrink: { flexShrink: 1 },
   shrinkBox: { flexShrink: 1, minWidth: 0 },
   carryRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  rowMode: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  rowMode: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 },
 });

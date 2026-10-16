@@ -1,4 +1,4 @@
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { act, create } from 'react-test-renderer';
 
 import { BudgetHeader } from './BudgetHeader';
@@ -67,6 +67,17 @@ describe('BudgetHeader', () => {
     expect(hosts.map((n) => n.props.numberOfLines)).toEqual([1, 1]);
     const children = hosts.map((n) => (Array.isArray(n.props.children) ? n.props.children.join('') : n.props.children));
     expect(children).toEqual(['Октябрь', `Осталось 22${NB}390${NB}₽`]);
+  });
+
+  it('стрелка периода не сжимается рядом с длинным названием', () => {
+    const chevron = render(0).root.find(
+      (n) =>
+        typeof n.type === 'string' &&
+        n.props.accessibilityLabel === undefined &&
+        StyleSheet.flatten(n.props.style)?.flexShrink === 0,
+    );
+    expect(chevron.findAll((n) => typeof n.type === 'string').length).toBeGreaterThan(1);
+    expect(chevron.parent?.parent?.props.accessibilityLabel).toBe('Выбрать период: Октябрь');
   });
 
   it('кнопка периода без обработчика помечена отключённой', () => {

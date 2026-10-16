@@ -46,7 +46,9 @@ export function BudgetHeader({
         >
           {title}
         </AppText>
-        <AppIcon name="chevron-down" size={20} color={t.inkSecondary} strokeWidth={2} />
+        <View style={styles.chevron}>
+          <AppIcon name="chevron-down" size={20} color={t.inkSecondary} strokeWidth={2} />
+        </View>
       </Pressable>
       <View style={styles.right}>
         <View
@@ -89,6 +91,7 @@ const styles = StyleSheet.create({
     paddingRight: 4,
   },
   period: { minHeight: layout.touch, flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  chevron: { flexShrink: 0 },
   right: { flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 1, minWidth: 0 },
   pill: {
     minHeight: 32,

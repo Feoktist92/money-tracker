@@ -103,6 +103,27 @@ describe('Tile', () => {
     expect(StyleSheet.flatten(container!.props.style)).toMatchObject({ flexShrink: 1 });
   });
 
+  it('название, подпись и перенос подгоняются по ширине, а не обрезаются', () => {
+    const fitted = (tileRow: BudgetRow, rect: { x: number; y: number; width: number; height: number }) =>
+      render(tileRow, rect)
+        .tree.root.findAll((n) => typeof n.type === 'string' && n.props.adjustsFontSizeToFit === true)
+        .map((n) => ({ text: String(n.props.children).replace(/,/g, ''), min: n.props.minimumFontScale }));
+    const carryRow = row({
+      name: 'Развлечения',
+      carryIn: 70_000,
+      available: 670_000,
+      spent: 214_000,
+      remaining: 456_000,
+    });
+    const stacked = fitted(carryRow, { x: 210, y: 285, width: 168, height: 130 });
+    expect(stacked.filter((n) => n.min === 0.8).map((n) => n.text)).toEqual(
+      expect.arrayContaining(['Развлечения', `2${NB}140 из 18${NB}000`]),
+    );
+    expect(stacked.some((n) => n.min === 0.8 && n.text.includes('с сентября'))).toBe(true);
+    const compact = fitted(row({ name: 'Подписки', state: 'near' }), { x: 210, y: 555, width: 168, height: 49 });
+    expect(compact).toContainEqual({ text: 'Подписки', min: 0.8 });
+  });
+
   it('у плитки есть подпись для TalkBack', () => {
     const { tree } = render(row({}));
     const node = tree.root.findByProps({ accessible: true });
