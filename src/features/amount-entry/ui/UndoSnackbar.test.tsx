@@ -1,4 +1,4 @@
-import { Text } from 'react-native';
+import { AccessibilityInfo, Text } from 'react-native';
 import { act } from 'react-test-renderer';
 
 import { UNDO_MS, useUndoStore } from '../model/undoStore';
@@ -26,6 +26,17 @@ describe('UndoSnackbar', () => {
     expect(all).toEqual(['Записано', 'Отменить']);
     expect(tree.root.findAllByType(Text)[0]!.props.accessibilityLabel).toBe('Записано: −1 240 ₽ в Продукты');
     expect(() => pressable(tree, 'Отменить запись')).not.toThrow();
+  });
+
+  it('запись озвучивается скринридером', () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
+    try {
+      render(<UndoSnackbar onUndo={jest.fn()} />);
+      act(() => useUndoStore.getState().show({ id: 'tx1', label: '−1 240 ₽ в Продукты' }));
+      expect(announce).toHaveBeenCalledWith('Записано: −1 240 ₽ в Продукты');
+    } finally {
+      announce.mockRestore();
+    }
   });
 
   it('панель не скрывает кнопку от VoiceOver: у предков «Записано» нет accessible', () => {

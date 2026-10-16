@@ -48,5 +48,18 @@ describe('Keypad', () => {
   it('у остальных клавиш долгого нажатия нет', () => {
     const tree = render(<Keypad onPress={jest.fn()} />);
     expect(pressable(tree, '5').props.onLongPress).toBeUndefined();
+    expect(pressable(tree, '5').props.accessibilityActions).toBeUndefined();
+  });
+
+  it('«Стереть» отдаёт скринридеру действие «Очистить»', () => {
+    const onPress = jest.fn<void, [AmountKey]>();
+    const tree = render(<Keypad onPress={onPress} />);
+    const back = pressable(tree, 'Стереть');
+    expect(back.props.accessibilityActions).toEqual([{ name: 'longpress', label: 'Очистить' }]);
+    back.props.onAccessibilityAction({ nativeEvent: { actionName: 'longpress' } });
+    expect(onPress).toHaveBeenCalledWith('clear');
+    onPress.mockClear();
+    back.props.onAccessibilityAction({ nativeEvent: { actionName: 'activate' } });
+    expect(onPress).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/shared/theme/tokens';
@@ -21,6 +21,7 @@ export function UndoSnackbar({ onUndo }: { onUndo: (id: string) => void }) {
 
   useEffect(() => {
     if (!entry) return;
+    AccessibilityInfo.announceForAccessibility(`Записано: ${entry.label}`);
     const timer = setTimeout(() => useUndoStore.getState().dismiss(), UNDO_MS);
     return () => clearTimeout(timer);
   }, [entry, token]);

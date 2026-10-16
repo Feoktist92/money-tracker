@@ -1,4 +1,4 @@
-import { Keyboard, Text, TextInput } from 'react-native';
+import { Keyboard, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 import { act } from 'react-test-renderer';
 
 import { useEntryStore } from '../model/entryStore';
@@ -113,6 +113,49 @@ describe('AmountSheet', () => {
     expect(preview).toHaveBeenLastCalledWith(null);
     tap(tree, '7');
     expect(preview).toHaveBeenLastCalledWith(700);
+  });
+
+  it('касание плитки-превью поглощается и не доходит до фона', () => {
+    open(expense);
+    const tree = render(<AmountSheet info={{}} recent={[]} preview={() => <Text>превью</Text>} onRecord={jest.fn()} />);
+    const wrapper = tree.root.findAll(
+      (node) =>
+        typeof node.props.onStartShouldSetResponder === 'function' &&
+        node.findAllByType(Text).some((text) => text.props.children === 'превью'),
+    )[0]!;
+    expect(wrapper.props.onStartShouldSetResponder()).toBe(true);
+    expect(wrapper.props.pointerEvents).not.toBe('none');
+    // нажатие на сам фон по-прежнему закрывает шторку
+    tap(tree, 'Закрыть без записи');
+    expect(useEntryStore.getState().session).toBeNull();
+  });
+
+  it('крупная сумма — «живая область» для скринридера', () => {
+    open(expense);
+    const tree = render(<AmountSheet info={{}} recent={[]} onRecord={jest.fn()} />);
+    const amount = tree.root.findAll((node) => node.props.accessibilityLabel === 'Сумма 0 рублей')[0]!;
+    expect(amount.props.accessibilityLiveRegion).toBe('polite');
+  });
+
+  it('превью скрывается, когда шторка с ним не умещается на экране', () => {
+    open(expense);
+    const tree = render(<AmountSheet info={{}} recent={[]} preview={() => <Text>превью</Text>} onRecord={jest.fn()} />);
+    expect(texts(tree)).toContain('превью');
+    const layoutNode = tree.root.findAll((node) => typeof node.props.onLayout === 'function')[0]!;
+    act(() => layoutNode.props.onLayout({ nativeEvent: { layout: { height: 1300 } } }));
+    expect(texts(tree)).not.toContain('превью');
+    act(() => layoutNode.props.onLayout({ nativeEvent: { layout: { height: 600 } } }));
+    expect(texts(tree)).toContain('превью');
+  });
+
+  it('содержимое шторки прокручивается: высота ограничена окном без верхнего отступа', () => {
+    open(expense);
+    const tree = render(<AmountSheet info={{}} recent={[]} onRecord={jest.fn()} />);
+    const scroll = tree.root.findByType(ScrollView);
+    expect(scroll.props.keyboardShouldPersistTaps).toBe('handled');
+    const sheet = tree.root.findAll((node) => typeof node.props.onLayout === 'function')[0]!;
+    const flat = StyleSheet.flatten(sheet.props.style);
+    expect(flat.maxHeight).toBeGreaterThan(0);
   });
 
   it('нажатие на фон закрывает шторку без записи', () => {

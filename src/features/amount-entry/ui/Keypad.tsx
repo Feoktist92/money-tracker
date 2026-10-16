@@ -41,6 +41,15 @@ export function Keypad({ onPress }: { onPress: (key: AmountKey) => void }) {
                 accessibilityLabel={SPOKEN[key] ?? key}
                 onPress={() => onPress(key)}
                 onLongPress={key === 'back' ? () => onPress('clear') : undefined}
+                // Долгое нажатие недоступно скринридеру жестом: выносим «Очистить» в список действий элемента
+                accessibilityActions={key === 'back' ? [{ name: 'longpress', label: 'Очистить' }] : undefined}
+                onAccessibilityAction={
+                  key === 'back'
+                    ? (event) => {
+                        if (event.nativeEvent.actionName === 'longpress') onPress('clear');
+                      }
+                    : undefined
+                }
                 delayLongPress={350}
                 style={({ pressed }) => [
                   styles.key,

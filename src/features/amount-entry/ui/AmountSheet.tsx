@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { Keyboard, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import Animated, { ReduceMotion, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,6 +11,7 @@ import { AppIcon } from '@/shared/ui/AppIcon';
 import { AppText } from '@/shared/ui/AppText';
 
 import { useEntryStore } from '../model/entryStore';
+import { previewFits, sheetBottomPadding } from '../model/sheetLayout';
 import { useKeyboardInset } from '../model/useKeyboardInset';
 import {
   actionLabel,
@@ -52,6 +53,9 @@ function SheetBody({ session, info, recent, preview, onRecord }: AmountSheetProp
   const t = useTokens();
   const insets = useSafeAreaInsets();
   const keyboard = useKeyboardInset();
+  const { height: windowHeight } = useWindowDimensions();
+  // Естественная высота шторки (с учётом maxHeight): по ней решаем, поместится ли плитка-превью над ней
+  const [sheetHeight, setSheetHeight] = useState(0);
   const expression = useEntryStore((state) => state.expression);
   const dayOffset = useEntryStore((state) => state.dayOffset);
   const note = useEntryStore((state) => state.note);
@@ -81,109 +85,120 @@ function SheetBody({ session, info, recent, preview, onRecord }: AmountSheetProp
         onPress={close}
         style={styles.scrim}
       />
-      {preview && !noteFocused && (
-        <View pointerEvents="none" style={styles.preview}>
+      {preview && !noteFocused && previewFits({ windowHeight, insetTop: insets.top, sheetHeight }) && (
+        // Поглощает касания: нажатие на поднятую плитку не должно проваливаться в фон и закрывать шторку
+        <View onStartShouldSetResponder={() => true} style={styles.preview}>
           {preview(amount)}
         </View>
       )}
       <Animated.View
         entering={SlideInDown.duration(220).reduceMotion(ReduceMotion.System)}
-        style={[styles.sheet, { backgroundColor: t.surface, paddingBottom: 16 + Math.max(insets.bottom, keyboard) }]}
+        onLayout={(event) => setSheetHeight(event.nativeEvent.layout.height)}
+        style={[styles.sheet, { backgroundColor: t.surface, maxHeight: windowHeight - insets.top }]}
       >
-        <View style={styles.contextRow}>
-          <AppText variant="label" numberOfLines={1} style={styles.context}>
-            {contextLabel(session)}
-          </AppText>
-          <DayChip label="Сегодня" selected={dayOffset === 0} onPress={() => setDayOffset(0)} />
-          <DayChip label="Вчера" selected={dayOffset === -1} onPress={() => setDayOffset(-1)} />
-        </View>
-
-        <AppText
-          variant="caption"
-          color={t.inkSecondary}
-          numberOfLines={1}
-          ellipsizeMode="head"
-          style={styles.expression}
+        <ScrollView
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { paddingBottom: sheetBottomPadding(insets.bottom, keyboard) }]}
         >
-          {view.expression ?? ' '}
-        </AppText>
-        <AppText
-          variant="amountInput"
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.6}
-          accessibilityLabel={`Сумма ${view.display} рублей`}
-        >
-          {view.display}
-          {'\u00A0'}₽
-        </AppText>
-        <AppText variant="caption" color={t.inkSecondary} style={styles.after}>
-          {after ?? ' '}
-        </AppText>
-
-        {recent.length > 0 && !noteFocused && (
-          <View style={styles.chips}>
-            {recent.map((value) => (
-              <Pressable
-                key={value}
-                accessibilityRole="button"
-                accessibilityLabel={`Подставить ${formatMoney(value, { kopecks: 'auto' })}`}
-                onPress={() => setExpression(expressionFromKopecks(value))}
-                style={[styles.chip, { backgroundColor: t.tonal }]}
-              >
-                <AppText variant="label" color={t.onTonal}>
-                  {formatMoney(value, { kopecks: 'auto' })}
-                </AppText>
-              </Pressable>
-            ))}
+          <View style={styles.contextRow}>
+            <AppText variant="label" numberOfLines={1} style={styles.context}>
+              {contextLabel(session)}
+            </AppText>
+            <DayChip label="Сегодня" selected={dayOffset === 0} onPress={() => setDayOffset(0)} />
+            <DayChip label="Вчера" selected={dayOffset === -1} onPress={() => setDayOffset(-1)} />
           </View>
-        )}
 
-        {noteOpen ? (
-          <TextInput
-            ref={noteInput}
-            autoFocus
-            accessibilityLabel="Комментарий"
-            placeholder="Комментарий"
-            placeholderTextColor={t.inkSecondary}
-            value={note}
-            onChangeText={setNote}
-            onFocus={() => setNoteFocused(true)}
-            onBlur={() => setNoteFocused(false)}
-            maxLength={200}
-            returnKeyType="done"
-            style={[styles.noteInput, { backgroundColor: t.key, color: t.ink, fontFamily: fontFamily[400] }]}
-          />
-        ) : (
+          <AppText
+            variant="caption"
+            color={t.inkSecondary}
+            numberOfLines={1}
+            ellipsizeMode="head"
+            style={styles.expression}
+          >
+            {view.expression ?? ' '}
+          </AppText>
+          <AppText
+            variant="amountInput"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+            accessibilityLabel={`Сумма ${view.display} рублей`}
+            accessibilityLiveRegion="polite"
+          >
+            {view.display}
+            {'\u00A0'}₽
+          </AppText>
+          <AppText variant="caption" color={t.inkSecondary} style={styles.after}>
+            {after ?? ' '}
+          </AppText>
+
+          {recent.length > 0 && !noteFocused && (
+            <View style={styles.chips}>
+              {recent.map((value) => (
+                <Pressable
+                  key={value}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Подставить ${formatMoney(value, { kopecks: 'auto' })}`}
+                  onPress={() => setExpression(expressionFromKopecks(value))}
+                  style={[styles.chip, { backgroundColor: t.tonal }]}
+                >
+                  <AppText variant="label" color={t.onTonal}>
+                    {formatMoney(value, { kopecks: 'auto' })}
+                  </AppText>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {noteOpen ? (
+            <TextInput
+              ref={noteInput}
+              autoFocus
+              accessibilityLabel="Комментарий"
+              placeholder="Комментарий"
+              placeholderTextColor={t.inkSecondary}
+              value={note}
+              onChangeText={setNote}
+              onFocus={() => setNoteFocused(true)}
+              onBlur={() => setNoteFocused(false)}
+              maxLength={200}
+              returnKeyType="done"
+              style={[styles.noteInput, { backgroundColor: t.key, color: t.ink, fontFamily: fontFamily[400] }]}
+            />
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Добавить комментарий"
+              onPress={() => setNoteOpen(true)}
+              style={[styles.noteButton, { backgroundColor: t.key }]}
+            >
+              <AppIcon name="message-square" size={18} color={t.inkSecondary} />
+              <AppText variant="label" color={t.inkSecondary}>
+                Комментарий
+              </AppText>
+            </Pressable>
+          )}
+
+          {!noteFocused && <Keypad onPress={press} />}
+
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Добавить комментарий"
-            onPress={() => setNoteOpen(true)}
-            style={[styles.noteButton, { backgroundColor: t.key }]}
+            accessibilityLabel={actionLabel(session, amount)}
+            accessibilityState={{ disabled: !recordable }}
+            disabled={!recordable}
+            onPress={() => {
+              if (amount !== null) onRecord({ session, amount, dayOffset, note });
+            }}
+            style={[styles.action, { backgroundColor: recordable ? t.accent : t.divider }]}
           >
-            <AppIcon name="message-square" size={18} color={t.inkSecondary} />
-            <AppText variant="label" color={t.inkSecondary}>
-              Комментарий
+            <AppText variant="titleApp" color={recordable ? t.onAccent : t.inkSecondary}>
+              {actionLabel(session, amount)}
             </AppText>
           </Pressable>
-        )}
-
-        {!noteFocused && <Keypad onPress={press} />}
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={actionLabel(session, amount)}
-          accessibilityState={{ disabled: !recordable }}
-          disabled={!recordable}
-          onPress={() => {
-            if (amount !== null) onRecord({ session, amount, dayOffset, note });
-          }}
-          style={[styles.action, { backgroundColor: recordable ? t.accent : t.divider }]}
-        >
-          <AppText variant="titleApp" color={recordable ? t.onAccent : t.inkSecondary}>
-            {actionLabel(session, amount)}
-          </AppText>
-        </Pressable>
+        </ScrollView>
       </Animated.View>
     </View>
   );
@@ -210,7 +225,9 @@ const styles = StyleSheet.create({
   root: { ...StyleSheet.absoluteFill, justifyContent: 'flex-end' },
   scrim: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.4)' },
   preview: { paddingHorizontal: 12, paddingBottom: 8 },
-  sheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 16, paddingTop: 16, gap: 8 },
+  sheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden' },
+  scroll: { flexGrow: 0, flexShrink: 1 },
+  content: { paddingHorizontal: 16, paddingTop: 16, gap: 8 },
   contextRow: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 48 },
   context: { flex: 1 },
   dayChip: { minHeight: 48, paddingHorizontal: 12, borderRadius: 24, justifyContent: 'center' },
