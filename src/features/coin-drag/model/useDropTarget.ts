@@ -6,12 +6,18 @@ import { registerTarget } from './registry';
 import type { DropTargetInfo } from './types';
 import { targetVisual, type TargetVisual } from './visuals';
 
-/** Плитка-цель: регистрирует вид для броска и отдаёт его вид по состоянию жеста. `ref` — на корневой View плитки. */
-export function useDropTarget(info: DropTargetInfo): { ref: RefObject<View | null>; visual: TargetVisual } {
+/**
+ * Плитка-цель: регистрирует вид для броска и отдаёт его вид по состоянию жеста. `ref` — на корневой View плитки;
+ * `clipRef` — вид-область (viewport прокрутки), обрезающий плитку: за его пределами плитка не принимает бросок.
+ */
+export function useDropTarget(
+  info: DropTargetInfo,
+  clipRef?: RefObject<View | null>,
+): { ref: RefObject<View | null>; visual: TargetVisual } {
   const ref = useRef<View>(null);
   const { kind, id, name } = info;
   const stable = useMemo<DropTargetInfo>(() => ({ kind, id, name }), [kind, id, name]);
-  useEffect(() => registerTarget(stable, ref), [stable]);
+  useEffect(() => registerTarget(stable, ref, clipRef), [stable, clipRef]);
   const visual = useDragStore((state) => targetVisual(state, stable));
   return { ref, visual };
 }

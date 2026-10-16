@@ -19,6 +19,9 @@ export function createCoinGesture(begin: () => void) {
     .activateAfterLongPress(LONG_PRESS_MS)
     .onStart((event) => {
       'worklet';
+      // монета уже в руке у другого пальца: этот жест ничего не трогает (его onEnd/onFinalize тоже отсекаются владельцем)
+      if (dragMotion.active.value === 1) return;
+      dragMotion.owner.value = event.handlerTag;
       dragMotion.active.value = 1;
       dragMotion.hoverKey.value = null;
       dragMotion.rects.value = [];
@@ -28,6 +31,7 @@ export function createCoinGesture(begin: () => void) {
     })
     .onUpdate((event) => {
       'worklet';
+      if (event.handlerTag !== dragMotion.owner.value) return;
       dragMotion.x.value = event.absoluteX;
       dragMotion.y.value = event.absoluteY;
       const key = hitTest(event.absoluteX, event.absoluteY, dragMotion.rects.value);
@@ -36,18 +40,20 @@ export function createCoinGesture(begin: () => void) {
         scheduleOnRN(hoverDrag, key);
       }
     })
-    .onEnd((_event, success) => {
+    .onEnd((event, success) => {
       'worklet';
+      if (event.handlerTag !== dragMotion.owner.value) return;
       dragMotion.active.value = 0;
+      dragMotion.owner.value = -1;
       // жест отменён системой после активации (success = false): бросок не засчитывается
       scheduleOnRN(finishDrag, success ? dragMotion.hoverKey.value : null);
     })
-    .onFinalize(() => {
+    .onFinalize((event) => {
       'worklet';
-      // жест прерван системой (звонок, смена экрана) без onEnd: монета возвращается
-      if (dragMotion.active.value === 1) {
-        dragMotion.active.value = 0;
-        scheduleOnRN(finishDrag, null);
-      }
+      // жест прерван системой (звонок, смена экрана) без onEnd: монета возвращается; чужой жест не трогаем
+      if (event.handlerTag !== dragMotion.owner.value) return;
+      dragMotion.active.value = 0;
+      dragMotion.owner.value = -1;
+      scheduleOnRN(finishDrag, null);
     });
 }

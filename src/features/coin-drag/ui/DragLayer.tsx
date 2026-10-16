@@ -45,7 +45,12 @@ export function DragLayer() {
   const label = hoverKey && hoverName ? `${source.name} → ${hoverName}` : source.name;
 
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+    <View
+      pointerEvents="none"
+      importantForAccessibility="no-hide-descendants"
+      accessibilityElementsHidden
+      style={StyleSheet.absoluteFill}
+    >
       <Animated.View style={[styles.anchor, animated]}>
         <View style={styles.labelBox}>
           <View style={[styles.label, { backgroundColor: t.ink }]}>

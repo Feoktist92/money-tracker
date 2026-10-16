@@ -50,6 +50,16 @@ export function finishDrag(key: string | null): void {
   useDragStore.getState().finish(key);
 }
 
+/**
+ * Аварийный конец: источник жеста исчез (размонтирован) до onEnd. Освобождает общие значения жеста — иначе
+ * `active` остался бы 1 и блокировал все следующие перетаскивания, — и возвращает монету броском мимо.
+ */
+export function abortDrag(): void {
+  dragMotion.active.value = 0;
+  dragMotion.owner.value = -1;
+  finishDrag(null);
+}
+
 /** Призрак вернулся в лоток. */
 export function settleDrag(): void {
   useDragStore.getState().settle();

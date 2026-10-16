@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { BudgetRow } from '@/entities/budget';
@@ -12,6 +12,8 @@ import { Tile } from './Tile';
 export function Mosaic({ rows, carryFrom }: { rows: BudgetRow[]; carryFrom: string }) {
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
   const { fontScale } = useWindowDimensions();
+  // видимая область мозаики: плитки, прокрученные за её край, не принимают бросок монеты
+  const viewportRef = useRef<View>(null);
 
   const mosaic = useMemo(
     () =>
@@ -35,11 +37,15 @@ export function Mosaic({ rows, carryFrom }: { rows: BudgetRow[]; carryFrom: stri
   const rowById = useMemo(() => new Map(rows.map((row) => [row.categoryId, row])), [rows]);
   const tiles = mosaic?.tiles.map((rect) => {
     const row = rowById.get(rect.id);
-    return row ? <Tile key={rect.id} row={row} rect={rect} carryFrom={carryFrom} fontScale={fontScale} /> : null;
+    return row ? (
+      <Tile key={rect.id} row={row} rect={rect} carryFrom={carryFrom} fontScale={fontScale} clipRef={viewportRef} />
+    ) : null;
   });
 
   return (
     <View
+      ref={viewportRef}
+      collapsable={false}
       style={styles.root}
       onLayout={(event) => {
         const { width, height } = event.nativeEvent.layout;

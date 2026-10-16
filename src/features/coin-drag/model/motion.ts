@@ -15,4 +15,6 @@ export const dragMotion = {
   hoverKey: makeMutable<string | null>(null),
   /** 1 — палец ещё держит монету (между onStart и onEnd). */
   active: makeMutable(0),
+  /** handlerTag жеста, владеющего перетаскиванием; -1 — никто. Чужие жесты (второй палец) игнорируются. */
+  owner: makeMutable(-1),
 };

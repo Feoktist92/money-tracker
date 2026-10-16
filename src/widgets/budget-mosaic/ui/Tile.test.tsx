@@ -1,6 +1,6 @@
 import { type ReactTestInstance } from 'react-test-renderer';
 import { act, create } from 'react-test-renderer';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { BudgetRow } from '@/entities/budget';
 import { useDragStore } from '@/features/coin-drag';
@@ -142,6 +142,21 @@ describe('Tile', () => {
       act(() => useDragStore.getState().setHover('category:c'));
       const hovered = render(row({}));
       expect(hovered.tree.root.findAllByProps({ pointerEvents: 'none' }).length).toBeGreaterThan(0);
+    });
+
+    it('перерасход под монетой: фон меняется, заливки по-прежнему нет', () => {
+      const over = row({ limit: 700_000, available: 700_000, spent: 786_000, remaining: -86_000, state: 'over' });
+      act(() => useDragStore.getState().begin(account, [target]));
+      act(() => useDragStore.getState().setHover('category:c'));
+      const { tree } = render(over);
+      const rootStyle = flat(tree);
+      expect(rootStyle.backgroundColor).toBeDefined();
+      // единственный потомок с абсолютным позиционированием и процентной высотой — заливка; её быть не должно
+      const fills = tree.root
+        .findAllByType(View)
+        .filter((node) => typeof StyleSheet.flatten(node.props.style)?.height === 'string');
+      expect(fills).toHaveLength(0);
+      expect(tree.root.findAllByProps({ pointerEvents: 'none' }).length).toBeGreaterThan(0);
     });
 
     it('без жеста вид обычный', () => {

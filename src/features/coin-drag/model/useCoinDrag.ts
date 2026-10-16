@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { View } from 'react-native';
 
 import { createCoinGesture } from './coinGesture';
-import { startDrag } from './dragActions';
+import { abortDrag, startDrag } from './dragActions';
 import { useDragStore } from './dragStore';
 import { registerTarget } from './registry';
 import type { DragSource, DropTargetInfo } from './types';
@@ -27,6 +27,16 @@ export function useCoinDrag(source: DragSource, asTarget: DropTargetInfo | null)
   useEffect(() => (stableTarget ? registerTarget(stableTarget, ref) : undefined), [stableTarget]);
 
   const visual: CoinVisual = useDragStore((state) => coinVisual(state, stableSource, stableTarget));
+
+  // Источник исчез посреди жеста (GestureDetector размонтирован): onEnd уже не придёт, иначе один пропущенный конец
+  // заблокировал бы все следующие перетаскивания. Чужой жест (другая монета) не трогаем.
+  useEffect(
+    () => () => {
+      const { phase, source: held } = useDragStore.getState();
+      if (phase === 'dragging' && held?.kind === kind && held.id === id) abortDrag();
+    },
+    [kind, id],
+  );
 
   const gesture = useMemo(
     // ref читается только когда жест активируется (в обработчике), а не при рендере

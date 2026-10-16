@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDropTarget } from '@/features/coin-drag';
@@ -28,15 +29,18 @@ export function Tile({
   rect,
   carryFrom,
   fontScale,
+  clipRef,
 }: {
   row: BudgetRow;
   rect: TileRect;
   carryFrom: string;
   /** Масштаб системного шрифта: от него зависит, сколько строк поместится в плитку. */
   fontScale: number;
+  /** Видимая область, в которой плитка принимает бросок (viewport прокрутки); без неё — вся плитка. */
+  clipRef?: RefObject<View | null>;
 }) {
   const t = useTokens();
-  const { ref, visual } = useDropTarget({ kind: 'category', id: row.categoryId, name: row.name });
+  const { ref, visual } = useDropTarget({ kind: 'category', id: row.categoryId, name: row.name }, clipRef);
   const plan = planTileText({ width: rect.width, height: rect.height, fontScale, hasCarry: row.carryIn !== 0 });
 
   const base =
@@ -45,8 +49,8 @@ export function Tile({
       : row.state === 'near'
         ? { background: t.near.tile, fill: t.near.fill, ink: t.near.text, secondary: t.near.text, carry: t.near.text }
         : { background: t.tile, fill: t.fill, ink: t.ink, secondary: t.inkSecondary, carry: t.carry };
-  // Плитка под монетой: фон и заливка из токенов drop-target, поверх — рамка accent 3 px
-  const palette = visual === 'hover' ? { ...base, background: t.dropTarget.tile, fill: t.dropTarget.fill } : base;
+  // Плитка под монетой: фон из токена drop-target (заливка остаётся своей: у перерасхода её нет), поверх — рамка 3 dp
+  const palette = visual === 'hover' ? { ...base, background: t.dropTarget.tile } : base;
 
   const fillPercent =
     palette.fill && row.hasLimit && row.available > 0 ? Math.min(100, (row.spent / row.available) * 100) : 0;

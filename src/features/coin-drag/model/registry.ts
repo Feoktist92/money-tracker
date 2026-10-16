@@ -8,6 +8,8 @@ import { targetKey } from './types';
 export interface RegisteredTarget {
   info: DropTargetInfo;
   ref: RefObject<View | null>;
+  /** Вид, который обрезает цель (область прокрутки): прямоугольник цели пересекается с его окном. */
+  clipRef?: RefObject<View | null>;
 }
 
 export interface WindowBox {
@@ -20,9 +22,13 @@ export interface WindowBox {
 const targets = new Map<string, RegisteredTarget>();
 
 /** Регистрирует вид как цель броска; возвращает функцию отмены регистрации (для cleanup эффекта). */
-export function registerTarget(info: DropTargetInfo, ref: RefObject<View | null>): () => void {
+export function registerTarget(
+  info: DropTargetInfo,
+  ref: RefObject<View | null>,
+  clipRef?: RefObject<View | null>,
+): () => void {
   const key = targetKey(info);
-  const entry: RegisteredTarget = { info, ref };
+  const entry: RegisteredTarget = { info, ref, clipRef };
   targets.set(key, entry);
   return () => {
     // не сносим регистрацию, если ключ успел занять другой вид
@@ -54,16 +60,38 @@ export function measureView(ref: RefObject<View | null>): Promise<WindowBox | nu
   });
 }
 
+/** Пересечение двух прямоугольников окна; null, если общей площади нет. */
+function intersect(a: WindowBox, b: WindowBox): WindowBox | null {
+  const x = Math.max(a.x, b.x);
+  const y = Math.max(a.y, b.y);
+  const width = Math.min(a.x + a.width, b.x + b.width) - x;
+  const height = Math.min(a.y + a.height, b.y + b.height) - y;
+  return width > 0 && height > 0 ? { x, y, width, height } : null;
+}
+
 /**
  * Измеряет цели в момент начала жеста (а не по onLayout): после прокрутки мозаики координаты устарели бы.
- * Размонтированные и нулевые по размеру цели отбрасываются.
+ * measureInWindow отдаёт положение плитки без учёта обрезки ScrollView, поэтому цель с clipRef пересекается с окном
+ * этого вида (каждый вид измеряется один раз): невидимые цели отбрасываются, у частично видимых остаётся видимая часть.
+ * Размонтированные, нулевые по размеру и невидимые цели отбрасываются.
  */
 export async function measureTargets(candidates: readonly RegisteredTarget[]): Promise<TargetRect[]> {
-  const boxes = await Promise.all(candidates.map((entry) => measureView(entry.ref)));
+  const clipRefs = [...new Set(candidates.map((entry) => entry.clipRef).filter((ref) => ref !== undefined))];
+  const [boxes, clipBoxes] = await Promise.all([
+    Promise.all(candidates.map((entry) => measureView(entry.ref))),
+    Promise.all(clipRefs.map((ref) => measureView(ref))),
+  ]);
+  const clipByRef = new Map(clipRefs.map((ref, index) => [ref, clipBoxes[index]]));
   const rects: TargetRect[] = [];
   candidates.forEach((entry, index) => {
     const box = boxes[index];
-    if (box && box.width > 0 && box.height > 0) rects.push({ key: targetKey(entry.info), ...box });
+    if (!box || box.width <= 0 || box.height <= 0) return;
+    let visible: WindowBox | null = box;
+    if (entry.clipRef) {
+      const clip = clipByRef.get(entry.clipRef);
+      visible = clip ? intersect(box, clip) : null;
+    }
+    if (visible) rects.push({ key: targetKey(entry.info), ...visible });
   });
   return rects;
 }

@@ -1,4 +1,3 @@
-export { dragMotion } from './model/motion';
 export { useDragStore, type DropResult } from './model/dragStore';
 export { useCoinDrag } from './model/useCoinDrag';
 export { useDropTarget } from './model/useDropTarget';
