@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
+
+import { useDragStore } from '@/features/coin-drag';
 
 import { BudgetHeader } from '@/widgets/budget-header';
 import { Mosaic } from '@/widgets/budget-mosaic';
@@ -9,6 +11,7 @@ import { AppText } from '@/shared/ui/AppText';
 import { Screen } from '@/shared/ui/Screen';
 
 import { budgetSummary } from '../model/budgetSummary';
+import { describeDrop } from '../model/dropNotice';
 import { useBudgetPage } from '../model/useBudgetPage';
 
 /** Главный экран (макет C-main): шапка, мозаика категорий, лоток монет. Нижнюю навигацию рисует layout вкладок. */
@@ -17,6 +20,14 @@ export function BudgetPage() {
   useEffect(() => {
     if (error) console.error(error);
   }, [error]);
+  // Монета брошена на цель. Шторка суммы (фаза 2c) заменит это временное уведомление.
+  const dropped = useDragStore((state) => state.dropped);
+  useEffect(() => {
+    if (!dropped) return;
+    const { title, body } = describeDrop(dropped);
+    useDragStore.getState().clearDrop();
+    Alert.alert(title, body);
+  }, [dropped]);
   if (!data) {
     if (!error) return <Screen />;
     return (

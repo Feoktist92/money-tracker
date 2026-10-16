@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { DragLayer } from '@/features/coin-drag';
 import { DatabaseGate } from '@/shared/db/DatabaseGate';
 import { fontAssets } from '@/shared/theme/fonts';
 
@@ -24,6 +25,7 @@ export default function RootLayout() {
         <StatusBar style="auto" />
         <DatabaseGate migrations={migrations}>
           <Stack screenOptions={{ headerShown: false }} />
+          <DragLayer />
         </DatabaseGate>
       </HeroUINativeProvider>
     </GestureHandlerRootView>
