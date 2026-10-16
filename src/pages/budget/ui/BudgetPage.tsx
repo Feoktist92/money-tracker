@@ -1,33 +1,27 @@
 import { useEffect } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { useDragStore } from '@/features/coin-drag';
-
+import { projectExpense } from '@/entities/budget';
+import { AmountSheet } from '@/features/amount-entry';
 import { BudgetHeader } from '@/widgets/budget-header';
-import { Mosaic } from '@/widgets/budget-mosaic';
+import { Mosaic, TilePreview } from '@/widgets/budget-mosaic';
 import { CoinTray } from '@/widgets/coin-tray';
 import { monthNameGenitive, periodTitle, shiftPeriod } from '@/shared/lib/period';
+import { NEAR_THRESHOLD } from '@/shared/theme/tokens';
 import { AppText } from '@/shared/ui/AppText';
 import { Screen } from '@/shared/ui/Screen';
 
 import { budgetSummary } from '../model/budgetSummary';
-import { describeDrop } from '../model/dropNotice';
 import { useBudgetPage } from '../model/useBudgetPage';
+import { useEntryFlow } from '../model/useEntryFlow';
 
-/** Главный экран (макет C-main): шапка, мозаика категорий, лоток монет. Нижнюю навигацию рисует layout вкладок. */
+/** Главный экран (макет C-main): шапка, мозаика категорий, лоток монет, шторка ввода суммы. Нижнюю навигацию рисует layout вкладок. */
 export function BudgetPage() {
   const { data, error } = useBudgetPage();
+  const flow = useEntryFlow(data);
   useEffect(() => {
     if (error) console.error(error);
   }, [error]);
-  // Монета брошена на цель. Шторка суммы (фаза 2c) заменит это временное уведомление.
-  const dropped = useDragStore((state) => state.dropped);
-  useEffect(() => {
-    if (!dropped) return;
-    const { title, body } = describeDrop(dropped);
-    useDragStore.getState().clearDrop();
-    Alert.alert(title, body);
-  }, [dropped]);
   if (!data) {
     if (!error) return <Screen />;
     return (
@@ -41,6 +35,8 @@ export function BudgetPage() {
 
   const { overview, today } = data;
   const summary = budgetSummary(overview);
+  const carryFrom = monthNameGenitive(shiftPeriod(overview.period, -1));
+  const { previewRow } = flow;
   return (
     <Screen>
       <BudgetHeader
@@ -49,8 +45,24 @@ export function BudgetPage() {
         summary={summary}
         notificationCount={0}
       />
-      <Mosaic rows={overview.rows} carryFrom={monthNameGenitive(shiftPeriod(overview.period, -1))} />
+      <Mosaic rows={overview.rows} carryFrom={carryFrom} onTilePress={flow.openForTile} />
       <CoinTray income={data.income} accounts={data.accounts} />
+      <AmountSheet
+        info={flow.info}
+        recent={flow.recent}
+        onRecord={flow.record}
+        preview={
+          previewRow
+            ? (amount) => (
+                <TilePreview
+                  before={previewRow}
+                  after={amount === null ? previewRow : projectExpense(previewRow, amount, NEAR_THRESHOLD)}
+                  carryFrom={carryFrom}
+                />
+              )
+            : undefined
+        }
+      />
     </Screen>
   );
 }

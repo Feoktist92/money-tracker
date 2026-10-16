@@ -7,7 +7,10 @@ import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { softDeleteTransaction } from '@/entities/transaction';
+import { UndoSnackbar } from '@/features/amount-entry';
 import { DragLayer } from '@/features/coin-drag';
+import { db } from '@/shared/db/client';
 import { DatabaseGate } from '@/shared/db/DatabaseGate';
 import { fontAssets } from '@/shared/theme/fonts';
 
@@ -26,6 +29,7 @@ export default function RootLayout() {
         <DatabaseGate migrations={migrations}>
           <Stack screenOptions={{ headerShown: false }} />
           <DragLayer />
+          <UndoSnackbar onUndo={(id) => void softDeleteTransaction(db, id)} />
         </DatabaseGate>
       </HeroUINativeProvider>
     </GestureHandlerRootView>
