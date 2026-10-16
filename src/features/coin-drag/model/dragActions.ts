@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import type { RefObject } from 'react';
 import type { View } from 'react-native';
-import { withSpring } from 'react-native-reanimated';
+import { Easing, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { useDragStore } from './dragStore';
@@ -68,9 +68,10 @@ export function settleDrag(): void {
 /** Призрак и палец: центр призрака лежит левее и выше пальца на SHIFT − GHOST / 2 (см. DragLayer). */
 export const GHOST = 64;
 export const SHIFT = GHOST + 8;
-const SPRING = { damping: 18, stiffness: 220, mass: 0.8 } as const;
+/** Возврат мимо цели: короткий прямой полёт без колебаний, чтобы слот лотка не пустовал дольше пары кадров. */
+const RETURN_MS = 160;
 
-/** Бросок мимо: призрак пружиной летит в исходный слот лотка, затем жест считается законченным. */
+/** Бросок мимо: призрак быстро летит в исходный слот лотка (easeOut, 160 мс), затем жест считается законченным. */
 export function returnGhost(reduceMotion: boolean): void {
   // центр призрака (x − SHIFT + GHOST / 2) должен лечь на центр исходной монеты
   const toX = dragMotion.originX.value + SHIFT - GHOST / 2;
@@ -81,8 +82,9 @@ export function returnGhost(reduceMotion: boolean): void {
     settleDrag();
     return;
   }
-  dragMotion.x.value = withSpring(toX, SPRING);
-  dragMotion.y.value = withSpring(toY, SPRING, (finished) => {
+  const timing = { duration: RETURN_MS, easing: Easing.out(Easing.cubic) };
+  dragMotion.x.value = withTiming(toX, timing);
+  dragMotion.y.value = withTiming(toY, timing, (finished) => {
     'worklet';
     if (finished) scheduleOnRN(settleDrag);
   });

@@ -11,7 +11,8 @@ import type { DragSource, DropTargetInfo } from './types';
 // (значение без поля .value) и не знает useReducedMotion, а здесь нужны настоящие общие значения.
 jest.mock('react-native-reanimated', () => ({
   makeMutable: (value: unknown) => ({ value }),
-  withSpring: (value: number) => value,
+  withTiming: (value: number) => value,
+  Easing: { out: (fn: unknown) => fn, cubic: 'cubic' },
   useReducedMotion: () => false,
 }));
 jest.mock('expo-haptics', () => ({
