@@ -9,7 +9,16 @@ import { tileWeight } from '../model/weights';
 import { Tile } from './Tile';
 
 /** Мозаика бюджета месяца: плитки по категориям; раскладку считает layoutMosaic, область измеряется onLayout. */
-export function Mosaic({ rows, carryFrom }: { rows: BudgetRow[]; carryFrom: string }) {
+export function Mosaic({
+  rows,
+  carryFrom,
+  onTilePress,
+}: {
+  rows: BudgetRow[];
+  carryFrom: string;
+  /** Нажатие на плитку категории. */
+  onTilePress?: (row: BudgetRow) => void;
+}) {
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
   const { fontScale } = useWindowDimensions();
   // видимая область мозаики: плитки, прокрученные за её край, не принимают бросок монеты
@@ -38,7 +47,15 @@ export function Mosaic({ rows, carryFrom }: { rows: BudgetRow[]; carryFrom: stri
   const tiles = mosaic?.tiles.map((rect) => {
     const row = rowById.get(rect.id);
     return row ? (
-      <Tile key={rect.id} row={row} rect={rect} carryFrom={carryFrom} fontScale={fontScale} clipRef={viewportRef} />
+      <Tile
+        key={rect.id}
+        row={row}
+        rect={rect}
+        carryFrom={carryFrom}
+        fontScale={fontScale}
+        clipRef={viewportRef}
+        onPress={onTilePress}
+      />
     ) : null;
   });
 

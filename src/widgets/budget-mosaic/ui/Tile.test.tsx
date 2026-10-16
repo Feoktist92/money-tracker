@@ -9,6 +9,10 @@ import { Tile } from './Tile';
 
 const NB = '\u00A0';
 
+/** Корневой узел плитки: хост-вью (у Pressable есть ещё и композит с теми же пропсами). */
+const rootNode = (tree: ReturnType<typeof create>) =>
+  tree.root.findAll((node) => typeof node.type === 'string' && node.props.accessible === true)[0]!;
+
 const row = (patch: Partial<BudgetRow>): BudgetRow => ({
   categoryId: 'c',
   name: 'Продукты',
@@ -126,13 +130,13 @@ describe('Tile', () => {
 
   it('у плитки есть подпись для TalkBack', () => {
     const { tree } = render(row({}));
-    const node = tree.root.findByProps({ accessible: true });
+    const node = rootNode(tree);
     expect(node.props.accessibilityLabel).toBe('Продукты, осталось 6 760 рублей из 18 000, потрачено 62 процента');
   });
 
   it('размер и положение берутся из раскладки', () => {
     const { tree } = render(row({}), { x: 12, y: 317, width: 194, height: 163 });
-    const style = tree.root.findByProps({ accessible: true }).props.style;
+    const style = rootNode(tree).props.style;
     expect(JSON.stringify(style)).toContain('"left":12');
     expect(JSON.stringify(style)).toContain('"height":163');
   });
@@ -141,7 +145,7 @@ describe('Tile', () => {
     const account = { kind: 'account', id: 'main', name: 'Основная', icon: 'credit-card', color: 'violet' } as const;
     const income = { kind: 'income', id: 'salary', name: 'Зарплата', icon: 'arrow-down-to-line' } as const;
     const target = { kind: 'category', id: 'c', name: 'Продукты' } as const;
-    const root = (tree: ReturnType<typeof create>) => tree.root.findByProps({ accessible: true });
+    const root = rootNode;
     const flat = (tree: ReturnType<typeof create>) => StyleSheet.flatten(root(tree).props.style);
 
     afterEach(() => {
@@ -183,6 +187,59 @@ describe('Tile', () => {
     it('без жеста вид обычный', () => {
       const { tree } = render(row({}));
       expect(flat(tree).opacity).toBeUndefined();
+    });
+  });
+
+  describe('нажатие и превью', () => {
+    const renderTile = (props: Partial<React.ComponentProps<typeof Tile>> = {}) => {
+      let tree!: ReturnType<typeof create>;
+      act(() => {
+        tree = create(
+          <Tile
+            row={row({})}
+            rect={{ x: 12, y: 4, width: 194, height: 309 }}
+            carryFrom="сентября"
+            fontScale={1}
+            {...props}
+          />,
+        );
+      });
+      return tree;
+    };
+
+    /** Композит Pressable (внешний узел с подписью): у него onPress и disabled. */
+    const pressNode = (tree: ReturnType<typeof create>) =>
+      tree.root.findAll((node) => typeof node.type !== 'string' && node.props.accessibilityLabel !== undefined)[0]!;
+
+    it('нажатие отдаёт строку бюджета; плитка становится кнопкой', () => {
+      const onPress = jest.fn();
+      const tree = renderTile({ onPress });
+      expect(rootNode(tree).props.accessibilityRole).toBe('button');
+      act(() => {
+        pressNode(tree).props.onPress();
+      });
+      expect(onPress).toHaveBeenCalledWith(expect.objectContaining({ categoryId: 'c', name: 'Продукты' }));
+    });
+
+    it('без onPress плитка не кнопка и не реагирует', () => {
+      const tree = renderTile();
+      expect(rootNode(tree).props.accessibilityRole).toBeUndefined();
+      expect(pressNode(tree).props.disabled).toBe(true);
+    });
+
+    it('превью («поднята»): рамка accent 2 dp и не тускнеет, когда настоящая плитка тускнеет', () => {
+      act(() => useDragStore.getState().begin({ kind: 'income', id: 'salary', name: 'Зарплата', icon: 'x' }, []));
+      const real = renderTile();
+      const raised = renderTile({ raised: true });
+      expect(StyleSheet.flatten(rootNode(real).props.style).opacity).toBe(0.55);
+      expect(StyleSheet.flatten(rootNode(raised).props.style).opacity).toBeUndefined();
+      const frame = raised.root.findAll(
+        (node) => node.props.pointerEvents === 'none' && StyleSheet.flatten(node.props.style)?.borderWidth === 2,
+      );
+      expect(frame.length).toBeGreaterThan(0);
+      act(() => {
+        useDragStore.setState({ phase: 'idle', source: null, hoverKey: null, candidates: {}, dropped: null });
+      });
     });
   });
 });

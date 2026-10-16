@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useDropTarget } from '@/features/coin-drag';
 
@@ -30,6 +30,8 @@ export function Tile({
   carryFrom,
   fontScale,
   clipRef,
+  onPress,
+  raised = false,
 }: {
   row: BudgetRow;
   rect: TileRect;
@@ -38,9 +40,13 @@ export function Tile({
   fontScale: number;
   /** Видимая область, в которой плитка принимает бросок (viewport прокрутки); без неё — вся плитка. */
   clipRef?: RefObject<View | null>;
+  /** Нажатие на плитку (записать расход без перетаскивания). */
+  onPress?: (row: BudgetRow) => void;
+  /** Плитка-превью над шторкой суммы: рамка accent 2 dp, не принимает бросок монеты. */
+  raised?: boolean;
 }) {
   const t = useTokens();
-  const { ref, visual } = useDropTarget({ kind: 'category', id: row.categoryId, name: row.name }, clipRef);
+  const { ref, visual } = useDropTarget({ kind: 'category', id: row.categoryId, name: row.name }, clipRef, !raised);
   const plan = planTileText({ width: rect.width, height: rect.height, fontScale, hasCarry: row.carryIn !== 0 });
 
   const base =
@@ -58,11 +64,14 @@ export function Tile({
   const caption = row.hasLimit ? `${plain(row.spent)} из ${plain(row.limit)}` : 'без лимита';
 
   return (
-    <View
+    <Pressable
       ref={ref}
       collapsable={false}
       accessible
+      accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={tileLabel(row)}
+      disabled={!onPress}
+      onPress={onPress ? () => onPress(row) : undefined}
       style={[
         styles.tile,
         { left: rect.x, top: rect.y, width: rect.width, height: rect.height, backgroundColor: palette.background },
@@ -159,7 +168,8 @@ export function Tile({
       {visual === 'hover' && (
         <View pointerEvents="none" style={[styles.dropBorder, { borderColor: t.dropTarget.border }]} />
       )}
-    </View>
+      {raised && <View pointerEvents="none" style={[styles.dropBorder, { borderColor: t.accent, borderWidth: 2 }]} />}
+    </Pressable>
   );
 }
 

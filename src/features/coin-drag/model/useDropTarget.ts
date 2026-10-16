@@ -9,15 +9,17 @@ import { targetVisual, type TargetVisual } from './visuals';
 /**
  * Плитка-цель: регистрирует вид для броска и отдаёт его вид по состоянию жеста. `ref` — на корневой View плитки;
  * `clipRef` — вид-область (viewport прокрутки), обрезающий плитку: за его пределами плитка не принимает бросок.
+ * `enabled = false` — плитка-двойник (превью в шторке): не регистрируется и всегда в обычном виде.
  */
 export function useDropTarget(
   info: DropTargetInfo,
   clipRef?: RefObject<View | null>,
+  enabled = true,
 ): { ref: RefObject<View | null>; visual: TargetVisual } {
   const ref = useRef<View>(null);
   const { kind, id, name } = info;
   const stable = useMemo<DropTargetInfo>(() => ({ kind, id, name }), [kind, id, name]);
-  useEffect(() => registerTarget(stable, ref, clipRef), [stable, clipRef]);
-  const visual = useDragStore((state) => targetVisual(state, stable));
+  useEffect(() => (enabled ? registerTarget(stable, ref, clipRef) : undefined), [stable, clipRef, enabled]);
+  const visual = useDragStore((state) => (enabled ? targetVisual(state, stable) : 'idle'));
   return { ref, visual };
 }

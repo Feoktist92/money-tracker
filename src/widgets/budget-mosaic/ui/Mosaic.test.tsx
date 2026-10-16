@@ -21,10 +21,10 @@ const row = (i: number, patch: Partial<BudgetRow> = {}): BudgetRow => ({
 });
 
 /** Рендерит мозаику и сообщает ей размер области, как это делает onLayout на устройстве. */
-function render(rows: BudgetRow[], size = { width: 390, height: 608 }) {
+function render(rows: BudgetRow[], size = { width: 390, height: 608 }, onTilePress?: (row: BudgetRow) => void) {
   let tree!: ReturnType<typeof create>;
   act(() => {
-    tree = create(<Mosaic rows={rows} carryFrom="сентября" />);
+    tree = create(<Mosaic rows={rows} carryFrom="сентября" onTilePress={onTilePress} />);
   });
   const root = tree.root.findAllByType(View)[0]!;
   act(() => {
@@ -60,5 +60,14 @@ describe('Mosaic', () => {
 
   it('без категорий ничего не рисует и не падает', () => {
     expect(render([]).root.findAllByType(Tile)).toHaveLength(0);
+  });
+
+  it('нажатие на плитку передаётся наружу вместе со строкой бюджета', () => {
+    const onTilePress = jest.fn();
+    const rows = [row(1), row(2)];
+    const tree = render(rows, undefined, onTilePress);
+    const tile = tree.root.findAllByType(Tile)[0]!;
+    act(() => tile.props.onPress(rows[0]));
+    expect(onTilePress).toHaveBeenCalledWith(rows[0]);
   });
 });
