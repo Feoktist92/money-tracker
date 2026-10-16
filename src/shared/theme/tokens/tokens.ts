@@ -18,6 +18,8 @@ export interface ThemeTokens {
   carry: string;
   near: { tile: string; fill: string; text: string };
   over: { tile: string; text: string };
+  /** Плитка или монета под пальцем во время перетаскивания. */
+  dropTarget: { tile: string; fill: string; border: string };
 }
 
 export const tokens = {
@@ -38,6 +40,7 @@ export const tokens = {
     carry: '#3B2A9E',
     near: { tile: '#F6E7C6', fill: '#EBCB87', text: '#3A2600' },
     over: { tile: '#F3B6B3', text: '#6E0D14' },
+    dropTarget: { tile: '#E7E4F4', fill: '#B8ADEA', border: '#5B3FD6' },
   },
   dark: {
     ground: '#12101C',
@@ -56,6 +59,7 @@ export const tokens = {
     carry: '#CFC7FF',
     near: { tile: '#3A2C12', fill: '#6E5220', text: '#F7D58D' },
     over: { tile: '#5A2025', text: '#FFC9C6' },
+    dropTarget: { tile: '#2A2546', fill: '#4A4086', border: '#A99BFF' },
   },
 } as const satisfies Record<'light' | 'dark', ThemeTokens>;
 
