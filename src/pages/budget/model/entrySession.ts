@@ -36,11 +36,14 @@ export function entryInfo(
 ): EntryInfo {
   const balance = (id: string) => accounts.find((account) => account.id === id)?.balance;
   switch (session.type) {
-    case 'expense':
+    case 'expense': {
+      const row = overview.rows.find((candidate) => candidate.categoryId === session.category.id);
       return {
-        categoryRemaining: overview.rows.find((row) => row.categoryId === session.category.id)?.remaining,
+        // У категории без лимита остатка нет: «−потрачено» шторка показала бы как «Перерасход»
+        categoryRemaining: row?.hasLimit ? row.remaining : undefined,
         sourceBalance: balance(session.account.id),
       };
+    }
     case 'income':
       return { targetBalance: balance(session.account.id) };
     case 'transfer':

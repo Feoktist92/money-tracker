@@ -71,10 +71,12 @@ export function useEntryFlow(data: BudgetPageData | null): EntryFlow {
 
   const openForTile = useCallback(
     (row: BudgetRow) => {
-      if (!accounts) return;
+      // Шторка уже открыта (идёт бросок монеты или предыдущее нажатие): второе открытие её не подменяет
+      if (!accounts || useEntryStore.getState().session) return;
       void getLastAccountForCategory(db, row.categoryId)
         .catch(() => null)
         .then((lastAccountId) => {
+          if (useEntryStore.getState().session) return;
           const account = pickDefaultAccount(accounts, lastAccountId);
           if (!account) return;
           useEntryStore.getState().open(sessionForTile(row, account));
@@ -84,13 +86,16 @@ export function useEntryFlow(data: BudgetPageData | null): EntryFlow {
   );
 
   const record = useCallback(async (draft: EntryDraft) => {
+    // Шторка уже закрыта или заменена другой: этот черновик устарел
+    if (useEntryStore.getState().session !== draft.session) return;
     if (recording.current) return;
     recording.current = true;
     try {
       const id = await addTransaction(db, buildTransaction(draft, toDateKey(new Date())));
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       useUndoStore.getState().show({ id, label: `${formatMoney(draft.amount)}, ${contextLabel(draft.session)}` });
-      useEntryStore.getState().close();
+      // Пока писали, шторку могли закрыть и открыть заново: чужую не закрываем
+      if (useEntryStore.getState().session === draft.session) useEntryStore.getState().close();
     } catch {
       Alert.alert('Не удалось записать', 'Попробуйте ещё раз.');
     } finally {

@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
+import { Alert } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { softDeleteTransaction } from '@/entities/transaction';
@@ -29,7 +30,13 @@ export default function RootLayout() {
         <DatabaseGate migrations={migrations}>
           <Stack screenOptions={{ headerShown: false }} />
           <DragLayer />
-          <UndoSnackbar onUndo={(id) => void softDeleteTransaction(db, id)} />
+          <UndoSnackbar
+            onUndo={(id) =>
+              void softDeleteTransaction(db, id).catch(() =>
+                Alert.alert('Не удалось отменить запись', 'Попробуйте ещё раз.'),
+              )
+            }
+          />
         </DatabaseGate>
       </HeroUINativeProvider>
     </GestureHandlerRootView>

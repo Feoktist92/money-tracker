@@ -211,6 +211,12 @@ describe('Tile', () => {
     const pressNode = (tree: ReturnType<typeof create>) =>
       tree.root.findAll((node) => typeof node.type !== 'string' && node.props.accessibilityLabel !== undefined)[0]!;
 
+    afterEach(() => {
+      act(() => {
+        useDragStore.setState({ phase: 'idle', source: null, hoverKey: null, candidates: {}, dropped: null });
+      });
+    });
+
     it('нажатие отдаёт строку бюджета; плитка становится кнопкой', () => {
       const onPress = jest.fn();
       const tree = renderTile({ onPress });
@@ -227,11 +233,24 @@ describe('Tile', () => {
       expect(pressNode(tree).props.disabled).toBeUndefined();
       expect(rootNode(tree).props.accessibilityState?.disabled).not.toBe(true);
       expect(pressNode(tree).props.onPress).toBeUndefined();
-      expect(() =>
-        act(() => {
-          pressNode(tree).props.onPress?.();
-        }),
-      ).not.toThrow();
+    });
+
+    it('превью не цель броска: под монетой остаётся обычным, без рамки и подсветки', () => {
+      const account = { kind: 'account', id: 'main', name: 'Основная', icon: 'credit-card', color: 'violet' } as const;
+      act(() => useDragStore.getState().begin(account, [{ kind: 'category', id: 'c', name: 'Продукты' }]));
+      act(() => useDragStore.getState().setHover('category:c'));
+      const real = renderTile();
+      const raised = renderTile({ raised: true });
+      const borders = (tree: ReturnType<typeof create>) =>
+        tree.root.findAll(
+          (node) => node.props.pointerEvents === 'none' && StyleSheet.flatten(node.props.style)?.borderWidth === 3,
+        );
+      // настоящая плитка под монетой подсвечена рамкой 3 dp; превью — только своей рамкой accent 2 dp
+      expect(borders(real).length).toBeGreaterThan(0);
+      expect(borders(raised)).toHaveLength(0);
+      act(() => {
+        useDragStore.setState({ phase: 'idle', source: null, hoverKey: null, candidates: {}, dropped: null });
+      });
     });
 
     it('превью («поднята»): рамка accent 2 dp и не тускнеет, когда настоящая плитка тускнеет', () => {

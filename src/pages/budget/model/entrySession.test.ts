@@ -78,7 +78,8 @@ describe('pickDefaultAccount', () => {
 });
 
 describe('entryInfo', () => {
-  const row = (categoryId: string, remaining: number) => ({ categoryId, remaining }) as BudgetRow;
+  const row = (categoryId: string, remaining: number, hasLimit = true) =>
+    ({ categoryId, remaining, hasLimit }) as BudgetRow;
   const overview = { rows: [row('food', 676000), row('cafe', -86000)] } as BudgetOverview;
   const accounts = [
     { id: 'main', name: 'Основная', balance: 4821500 },
@@ -92,6 +93,17 @@ describe('entryInfo', () => {
       category: { id: 'cafe', name: 'Кафе' },
     } as const;
     expect(entryInfo(session, overview, accounts)).toEqual({ categoryRemaining: -86000, sourceBalance: 4821500 });
+  });
+
+  it('расход по категории без лимита: остатка нет, «Перерасход» не показывается', () => {
+    const noLimit = { rows: [row('misc', -50000, false)] } as BudgetOverview;
+    const session = {
+      type: 'expense',
+      account: { id: 'main', name: 'Основная' },
+      category: { id: 'misc', name: 'Разное' },
+    } as const;
+    expect(entryInfo(session, noLimit, accounts)).toEqual({ categoryRemaining: undefined, sourceBalance: 4821500 });
+    expect(entryInfo(session, noLimit, accounts).categoryRemaining).toBeUndefined();
   });
 
   it('доход: баланс счёта-получателя', () => {
