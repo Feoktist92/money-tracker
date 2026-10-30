@@ -23,7 +23,7 @@ import type { BudgetPageData } from './useBudgetPage';
 const NO_AMOUNTS: Kopecks[] = [];
 
 export interface EntryFlow {
-  /** Нажатие на плитку: открыть шторку расхода со счётом по умолчанию. */
+  /** Действие TalkBack «Записать расход» на плитке: открыть шторку расхода со счётом по умолчанию. */
   openForTile: (row: BudgetRow) => void;
   info: EntryInfo;
   /** Самые частые суммы по категории за 30 дней. */
@@ -34,7 +34,7 @@ export interface EntryFlow {
 }
 
 /**
- * Весь поток ввода суммы на главном экране: бросок монеты или тап по плитке открывает шторку, шторка берёт цифры и
+ * Весь поток ввода суммы на главном экране: бросок монеты или действие TalkBack «Записать расход» на плитке открывает шторку, шторка берёт цифры и
  * недавние суммы, «Записать» пишет операцию, snackbar предлагает отмену.
  */
 export function useEntryFlow(data: BudgetPageData | null): EntryFlow {

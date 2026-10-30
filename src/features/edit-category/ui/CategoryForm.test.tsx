@@ -1,5 +1,9 @@
+import * as ReactNative from 'react-native';
 import { Text, TextInput } from 'react-native';
 import { act, create } from 'react-test-renderer';
+
+import { tokens } from '@/shared/theme/tokens';
+import { AppIcon } from '@/shared/ui/AppIcon';
 
 import { emptyCategory } from '../model/categoryForm';
 import { CategoryForm } from './CategoryForm';
@@ -25,10 +29,12 @@ function render(props: Partial<React.ComponentProps<typeof CategoryForm>> = {}) 
     tree.root.findAll((n) => n.type === TextInput && n.props.accessibilityLabel === label)[0];
   const texts = () => tree.root.findAllByType(Text).map((n) => String(n.props.children));
   const type = (label: string, value: string) => act(() => input(label)!.props.onChangeText(value));
-  return { button, input, texts, type, onSubmit };
+  return { button, input, texts, type, onSubmit, tree };
 }
 
 describe('CategoryForm', () => {
+  afterEach(() => jest.restoreAllMocks());
+
   it('пустая форма: «Создать» недоступна', () => {
     const { button } = render();
     expect(button('Создать')!.props.accessibilityState).toEqual({ disabled: true });
@@ -58,6 +64,16 @@ describe('CategoryForm', () => {
     expect(button('Янтарный')).toBeUndefined();
   });
 
+  describe.each(['light', 'dark'] as const)('галочка выбранного цвета (%s)', (scheme) => {
+    it('нарисована цветом onAccent темы, а не зашитым шестнадцатеричным значением', () => {
+      jest.spyOn(ReactNative, 'useColorScheme').mockReturnValue(scheme);
+      const { tree } = render();
+      const checks = tree.root.findAllByType(AppIcon).filter((node) => node.props.name === 'check');
+      expect(checks).toHaveLength(1);
+      expect(checks[0]!.props.color).toBe(tokens[scheme].onAccent);
+    });
+  });
+
   it('вид: у доходов поля лимита нет; повтор названия проверяется среди категорий выбранного вида', () => {
     const { button, input, type, texts } = render();
     type('Название', 'Зарплата');
@@ -66,6 +82,26 @@ describe('CategoryForm', () => {
     expect(input('Месячный лимит')).toBeUndefined();
     expect(texts()).toContain('Категория с таким названием уже есть');
     expect(button('Создать')!.props.accessibilityState).toEqual({ disabled: true });
+  });
+
+  it('смена вида подставляет значок вида, если свой не выбирали, и возвращает обратно', () => {
+    const { button, type, onSubmit } = render();
+    type('Название', 'Кэшбэк');
+    act(() => button('Доход')!.props.onPress());
+    act(() => button('Создать')!.props.onPress());
+    expect(onSubmit).toHaveBeenLastCalledWith(expect.objectContaining({ kind: 'income', icon: 'arrow-down-to-line' }));
+    act(() => button('Расход')!.props.onPress());
+    act(() => button('Создать')!.props.onPress());
+    expect(onSubmit).toHaveBeenLastCalledWith(expect.objectContaining({ kind: 'expense', icon: 'shopping-basket' }));
+  });
+
+  it('свой значок при смене вида не затирается', () => {
+    const { button, type, onSubmit } = render();
+    type('Название', 'Кэшбэк');
+    act(() => button('Значок: гантель')!.props.onPress());
+    act(() => button('Доход')!.props.onPress());
+    act(() => button('Создать')!.props.onPress());
+    expect(onSubmit).toHaveBeenLastCalledWith(expect.objectContaining({ kind: 'income', icon: 'dumbbell' }));
   });
 
   it('у существующей категории вид не меняется: чипов «Расход / Доход» нет', () => {

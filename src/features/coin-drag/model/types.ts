@@ -8,7 +8,7 @@ export interface DragSource {
   name: string;
   /** Имя значка из реестра AppIcon, для призрака монеты. */
   icon: string;
-  /** Ключ цвета счёта (accounts.color); у монеты дохода нет. */
+  /** Ключ цвета: у монеты счёта — accounts.color, у монеты дохода — цвет категории дохода (categories.color). */
   color?: string;
 }
 

@@ -18,12 +18,12 @@ export function sessionFromDrop({ source, target }: DropResult): EntrySession | 
   return null;
 }
 
-/** Тап по плитке категории: расход с выбранного счёта. */
+/** Действие TalkBack «Записать расход» на плитке категории: расход с выбранного счёта. */
 export function sessionForTile(row: Pick<BudgetRow, 'categoryId' | 'name'>, account: Party): EntrySession {
   return { type: 'expense', account, category: { id: row.categoryId, name: row.name } };
 }
 
-/** Счёт по умолчанию для тапа по плитке: последний, которым пользовались для категории; иначе первый по порядку. */
+/** Счёт по умолчанию для действия «Записать расход» на плитке: последний, которым пользовались для категории; иначе первый по порядку. */
 export function pickDefaultAccount(accounts: readonly Party[], lastAccountId: string | null): Party | null {
   return accounts.find((account) => account.id === lastAccountId) ?? accounts[0] ?? null;
 }

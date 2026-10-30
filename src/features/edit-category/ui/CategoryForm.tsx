@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, useColorScheme, View } from 'react-native';
 
 import type { CategoryInput } from '@/entities/category';
 import { CATEGORY_COLOR_KEYS, categoryColors, resolveCategoryColor } from '@/shared/theme/tokens';
+import { useTokens } from '@/shared/theme/useTokens';
 import { ActionButton } from '@/shared/ui/ActionButton';
 import { CATEGORY_ICON_CHOICES } from '@/shared/ui/AppIcon';
 import { Chips } from '@/shared/ui/Chips';
@@ -10,7 +11,7 @@ import { Field } from '@/shared/ui/Field';
 import { IconPicker } from '@/shared/ui/IconPicker';
 import { SwatchPicker } from '@/shared/ui/SwatchPicker';
 
-import { type CategoryDraft, validateCategoryDraft } from '../model/categoryForm';
+import { type CategoryDraft, defaultCategoryIcon, validateCategoryDraft } from '../model/categoryForm';
 
 type Touched = Partial<Record<'name' | 'monthlyLimit', boolean>>;
 
@@ -44,6 +45,7 @@ export function CategoryForm({
   showErrorsInitially?: boolean;
 }) {
   const dark = useColorScheme() === 'dark';
+  const t = useTokens();
   const [draft, setDraft] = useState(initial);
   const [touched, setTouched] = useState<Touched>(showErrorsInitially ? { name: true, monthlyLimit: true } : {});
   const set = <K extends keyof CategoryDraft>(key: K, value: CategoryDraft[K]) => {
@@ -57,7 +59,7 @@ export function CategoryForm({
   const swatches = CATEGORY_COLOR_KEYS.map((key) => ({
     key,
     color: palette[key].strong,
-    onColor: dark ? '#12101C' : '#FFFFFF',
+    onColor: t.onAccent,
   }));
   const accent = palette[resolveCategoryColor(draft.color)].strong;
 
@@ -78,7 +80,13 @@ export function CategoryForm({
             { value: 'income', label: 'Доход' },
           ]}
           value={draft.kind}
-          onChange={(kind) => set('kind', kind)}
+          onChange={(kind) =>
+            setDraft((prev) => ({
+              ...prev,
+              kind,
+              icon: prev.icon === defaultCategoryIcon(prev.kind) ? defaultCategoryIcon(kind) : prev.icon,
+            }))
+          }
         />
       )}
       <SwatchPicker label="Цвет" swatches={swatches} value={draft.color} onChange={(key) => set('color', key)} />

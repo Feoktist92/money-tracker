@@ -20,11 +20,16 @@ export interface CategoryErrors {
 
 export type CategoryValidation = { ok: true; value: CategoryInput } | { ok: false; errors: CategoryErrors };
 
+/** Значок по умолчанию для вида: при смене вида подставляется, если пользователь не выбирал свой значок. */
+export function defaultCategoryIcon(kind: CategoryInput['kind']): string {
+  return kind === 'expense' ? 'shopping-basket' : 'arrow-down-to-line';
+}
+
 export function emptyCategory(kind: CategoryInput['kind']): CategoryDraft {
   return {
     name: '',
     kind,
-    icon: kind === 'expense' ? 'shopping-basket' : 'arrow-down-to-line',
+    icon: defaultCategoryIcon(kind),
     color: 'violet',
     monthlyLimit: '',
   };
