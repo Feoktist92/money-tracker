@@ -83,6 +83,15 @@ describe('AccountForm', () => {
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ type: 'savings', icon: 'wallet' }));
   });
 
+  it('пока идёт запись, «Создать» и «Архивировать» недоступны', () => {
+    const { button, type } = render({ onArchive: jest.fn() });
+    type('Название', 'Кредитка');
+    expect(button('Создать')!.props.accessibilityState).toEqual({ disabled: false });
+    const saving = render({ initial: { ...EMPTY_ACCOUNT, name: 'Кредитка' }, onArchive: jest.fn(), saving: true });
+    expect(saving.button('Создать')!.props.accessibilityState).toEqual({ disabled: true });
+    expect(saving.button('Архивировать')!.props.accessibilityState).toEqual({ disabled: true });
+  });
+
   it('«Архивировать» есть только у существующего счёта', () => {
     expect(render().button('Архивировать')).toBeUndefined();
     const onArchive = jest.fn();

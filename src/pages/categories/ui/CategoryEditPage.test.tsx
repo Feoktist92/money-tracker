@@ -12,11 +12,13 @@ import { CategoryEditPage } from './CategoryEditPage';
 // База — настоящая (better-sqlite3 в памяти с миграциями приложения); клиент приложения подменён ею
 jest.mock('@/shared/db/client', () => ({ db: jest.requireActual('@/shared/db/testing').createTestDb() }));
 jest.mock('expo-router', () => ({
-  router: { back: jest.fn(), push: jest.fn() },
+  router: { back: jest.fn(), push: jest.fn(), replace: jest.fn(), canGoBack: jest.fn(() => true) },
   useLocalSearchParams: jest.fn(),
 }));
 
-const { router } = jest.requireMock('expo-router') as { router: { back: jest.Mock } };
+const { router } = jest.requireMock('expo-router') as {
+  router: { back: jest.Mock; replace: jest.Mock; canGoBack: jest.Mock };
+};
 let ids: Awaited<ReturnType<typeof seededIds>>;
 
 beforeAll(async () => {
@@ -24,6 +26,8 @@ beforeAll(async () => {
 });
 beforeEach(() => {
   router.back.mockClear();
+  router.replace.mockClear();
+  router.canGoBack.mockReturnValue(true);
   (useLocalSearchParams as jest.Mock).mockReturnValue({ kind: 'expense' });
 });
 afterEach(() => jest.restoreAllMocks());
@@ -101,6 +105,62 @@ describe('CategoryEditPage', () => {
     await press('Сохранить');
     expect(await byName('Кафе')).toMatchObject({ kind: 'expense', color: 'magenta', monthlyLimit: null });
     expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('двойное нажатие записывает один раз и закрывает экран один раз', async () => {
+    const { type, button } = await mount();
+    const before = (await db.select().from(categories)).length;
+    type('Название', 'Двойное нажатие');
+    const submit = button('Создать')!;
+    await act(async () => {
+      submit.props.onPress();
+      submit.props.onPress();
+    });
+    const after = await db.select().from(categories);
+    expect(after.length).toBe(before + 1);
+    expect(after.filter((c) => c.name === 'Двойное нажатие')).toHaveLength(1);
+    expect(router.back).toHaveBeenCalledTimes(1);
+    // после успеха экран закрывается: кнопка остаётся недоступной, и поздний повтор тоже ничего не пишет
+    expect(button('Создать')!.props.accessibilityState).toEqual({ disabled: true });
+    await act(async () => submit.props.onPress());
+    expect((await db.select().from(categories)).length).toBe(before + 1);
+    expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('сбой записи: сообщение, кнопка снова доступна, повтор записывает один раз', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    jest.spyOn(db, 'insert').mockImplementationOnce(() => {
+      throw new Error('диск полон');
+    });
+    const { type, press, button } = await mount();
+    const before = (await db.select().from(categories)).length;
+    type('Название', 'После сбоя');
+    await press('Создать');
+    expect(alert).toHaveBeenCalledWith('Не удалось сохранить', 'Попробуйте ещё раз.');
+    expect(router.back).not.toHaveBeenCalled();
+    expect(button('Создать')!.props.accessibilityState).toEqual({ disabled: false });
+    await press('Создать');
+    expect((await db.select().from(categories)).length).toBe(before + 1);
+    expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('без истории переходов «Назад» и сохранение ведут на главный экран', async () => {
+    router.canGoBack.mockReturnValue(false);
+    const { type, press } = await mount();
+    await press('Назад');
+    expect(router.replace).toHaveBeenLastCalledWith('/');
+    expect(router.back).not.toHaveBeenCalled();
+    type('Название', 'Без истории');
+    await press('Создать');
+    expect(router.replace).toHaveBeenCalledTimes(2);
+    expect(router.back).not.toHaveBeenCalled();
+  });
+
+  it('с историей «Назад» возвращает на предыдущий экран', async () => {
+    const { press } = await mount();
+    await press('Назад');
+    expect(router.back).toHaveBeenCalledTimes(1);
+    expect(router.replace).not.toHaveBeenCalled();
   });
 
   it('архив: после подтверждения категория архивирована', async () => {

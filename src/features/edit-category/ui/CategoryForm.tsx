@@ -26,6 +26,7 @@ export function CategoryForm({
   submitLabel,
   onSubmit,
   onArchive,
+  saving = false,
 }: {
   initial: CategoryDraft;
   /** Вид можно выбрать только при создании. */
@@ -36,6 +37,8 @@ export function CategoryForm({
   onSubmit: (value: CategoryInput) => void;
   /** Есть только у существующей активной категории. */
   onArchive?: () => void;
+  /** Запись идёт: кнопки недоступны, повторное нажатие не создаёт дубль. */
+  saving?: boolean;
 }) {
   const dark = useColorScheme() === 'dark';
   const [draft, setDraft] = useState(initial);
@@ -96,13 +99,13 @@ export function CategoryForm({
       <View style={styles.actions}>
         <ActionButton
           label={submitLabel}
-          disabled={!result.ok}
+          disabled={!result.ok || saving}
           onPress={() => {
             setTouched({ name: true, monthlyLimit: true });
             if (result.ok) onSubmit(result.value);
           }}
         />
-        {onArchive && <ActionButton label="Архивировать" variant="danger" onPress={onArchive} />}
+        {onArchive && <ActionButton label="Архивировать" variant="danger" disabled={saving} onPress={onArchive} />}
       </View>
     </ScrollView>
   );

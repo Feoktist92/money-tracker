@@ -81,6 +81,19 @@ describe('CategoryForm', () => {
     expect(texts()).toContain('Лимит должен быть больше нуля');
   });
 
+  it('пока идёт запись, «Создать» и «Архивировать» недоступны', () => {
+    const { button, type } = render({ onArchive: jest.fn() });
+    type('Название', 'Спорт');
+    expect(button('Создать')!.props.accessibilityState).toEqual({ disabled: false });
+    const saving = render({
+      initial: { ...emptyCategory('expense'), name: 'Спорт' },
+      onArchive: jest.fn(),
+      saving: true,
+    });
+    expect(saving.button('Создать')!.props.accessibilityState).toEqual({ disabled: true });
+    expect(saving.button('Архивировать')!.props.accessibilityState).toEqual({ disabled: true });
+  });
+
   it('«Архивировать» есть только у существующей категории', () => {
     expect(render().button('Архивировать')).toBeUndefined();
     const onArchive = jest.fn();

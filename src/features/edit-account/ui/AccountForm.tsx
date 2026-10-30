@@ -28,6 +28,7 @@ export function AccountForm({
   submitLabel,
   onSubmit,
   onArchive,
+  saving = false,
 }: {
   initial: AccountDraft;
   takenNames: readonly string[];
@@ -35,6 +36,8 @@ export function AccountForm({
   onSubmit: (value: AccountInput) => void;
   /** Есть только у существующего активного счёта. */
   onArchive?: () => void;
+  /** Запись идёт: кнопки недоступны, повторное нажатие не создаёт дубль. */
+  saving?: boolean;
 }) {
   const dark = useColorScheme() === 'dark';
   const [draft, setDraft] = useState(initial);
@@ -93,13 +96,13 @@ export function AccountForm({
       <View style={styles.actions}>
         <ActionButton
           label={submitLabel}
-          disabled={!result.ok}
+          disabled={!result.ok || saving}
           onPress={() => {
             setTouched({ name: true, initialBalance: true });
             if (result.ok) onSubmit(result.value);
           }}
         />
-        {onArchive && <ActionButton label="Архивировать" variant="danger" onPress={onArchive} />}
+        {onArchive && <ActionButton label="Архивировать" variant="danger" disabled={saving} onPress={onArchive} />}
       </View>
     </ScrollView>
   );

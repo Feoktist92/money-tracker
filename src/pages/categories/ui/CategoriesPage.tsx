@@ -3,6 +3,7 @@ import { type Href, router } from 'expo-router';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 
+import { goBack } from '../model/goBack';
 import { useCategoriesScreen } from '../model/useCategoriesScreen';
 import { CategoriesList } from './CategoriesList';
 
@@ -11,7 +12,7 @@ export function CategoriesPage() {
   const { data, move, restore } = useCategoriesScreen();
   return (
     <Screen bottomInset>
-      <ScreenHeader title="Категории" onBack={() => router.back()} />
+      <ScreenHeader title="Категории" onBack={goBack} />
       {data && (
         <CategoriesList
           active={data.active}

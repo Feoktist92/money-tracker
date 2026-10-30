@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import {
@@ -16,6 +16,8 @@ import { formatMoney } from '@/shared/lib/money';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 
+import { goBack } from '../model/goBack';
+
 interface Loaded {
   draft: CategoryDraft;
   takenNamesByKind: Record<CategoryInput['kind'], string[]>;
@@ -26,6 +28,11 @@ interface Loaded {
 export function CategoryEditPage() {
   const { id, kind } = useLocalSearchParams<{ id?: string; kind?: string }>();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
+  // Запись идёт: ref отсекает второе нажатие в том же такте (state обновится только к следующему рендеру),
+  // state отключает кнопки. После успеха защёлка остаётся до закрытия экрана: второе нажатие во время его
+  // ухода тоже не должно создать дубль.
+  const busy = useRef(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +64,19 @@ export function CategoryEditPage() {
     };
   }, [id, kind]);
 
+  const begin = () => {
+    if (busy.current) return false;
+    busy.current = true;
+    setSaving(true);
+    return true;
+  };
+  const release = () => {
+    busy.current = false;
+    setSaving(false);
+  };
+
   const save = async (value: CategoryInput) => {
+    if (!begin()) return;
     try {
       if (id) {
         const { kind: _kind, ...patch } = value;
@@ -65,10 +84,12 @@ export function CategoryEditPage() {
       } else {
         await createCategory(db, value);
       }
-      router.back();
     } catch {
+      release();
       Alert.alert('Не удалось сохранить', 'Попробуйте ещё раз.');
+      return;
     }
+    goBack();
   };
 
   const archive = () =>
@@ -81,11 +102,11 @@ export function CategoryEditPage() {
           text: 'Архивировать',
           style: 'destructive',
           onPress: () => {
-            if (!id) return;
-            setCategoryArchived(db, id, true).then(
-              () => router.back(),
-              () => Alert.alert('Не удалось архивировать', 'Попробуйте ещё раз.'),
-            );
+            if (!id || !begin()) return;
+            setCategoryArchived(db, id, true).then(goBack, () => {
+              release();
+              Alert.alert('Не удалось архивировать', 'Попробуйте ещё раз.');
+            });
           },
         },
       ],
@@ -93,7 +114,7 @@ export function CategoryEditPage() {
 
   return (
     <Screen bottomInset>
-      <ScreenHeader title={id ? 'Категория' : 'Новая категория'} onBack={() => router.back()} />
+      <ScreenHeader title={id ? 'Категория' : 'Новая категория'} onBack={goBack} />
       {loaded && (
         <CategoryForm
           key={id ?? `new-${kind ?? 'expense'}`}
@@ -101,6 +122,7 @@ export function CategoryEditPage() {
           kindEditable={!id}
           takenNamesByKind={loaded.takenNamesByKind}
           submitLabel={id ? 'Сохранить' : 'Создать'}
+          saving={saving}
           onSubmit={save}
           onArchive={id && !loaded.archived ? archive : undefined}
         />

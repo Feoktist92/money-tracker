@@ -3,6 +3,7 @@ import { type Href, router } from 'expo-router';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 
+import { goBack } from '../model/goBack';
 import { useAccountsScreen } from '../model/useAccountsScreen';
 import { AccountsList } from './AccountsList';
 
@@ -13,7 +14,7 @@ export function AccountsPage() {
   const { data, move, restore } = useAccountsScreen();
   return (
     <Screen bottomInset>
-      <ScreenHeader title="Счета" onBack={() => router.back()} />
+      <ScreenHeader title="Счета" onBack={goBack} />
       {data && (
         <AccountsList
           accounts={data.accounts}

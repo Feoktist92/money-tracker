@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import {
@@ -16,6 +16,8 @@ import { formatMoney } from '@/shared/lib/money';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 
+import { goBack } from '../model/goBack';
+
 interface Loaded {
   draft: AccountDraft;
   takenNames: string[];
@@ -26,6 +28,11 @@ interface Loaded {
 export function AccountEditPage() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
+  // Запись идёт: ref отсекает второе нажатие в том же такте (state обновится только к следующему рендеру),
+  // state отключает кнопки. После успеха защёлка остаётся до закрытия экрана: второе нажатие во время его
+  // ухода тоже не должно создать дубль.
+  const busy = useRef(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,14 +60,28 @@ export function AccountEditPage() {
     };
   }, [id]);
 
+  const begin = () => {
+    if (busy.current) return false;
+    busy.current = true;
+    setSaving(true);
+    return true;
+  };
+  const release = () => {
+    busy.current = false;
+    setSaving(false);
+  };
+
   const save = async (value: AccountInput) => {
+    if (!begin()) return;
     try {
       if (id) await updateAccount(db, id, value);
       else await createAccount(db, value);
-      router.back();
     } catch {
+      release();
       Alert.alert('Не удалось сохранить', 'Попробуйте ещё раз.');
+      return;
     }
+    goBack();
   };
 
   const archive = () =>
@@ -70,24 +91,25 @@ export function AccountEditPage() {
         text: 'Архивировать',
         style: 'destructive',
         onPress: () => {
-          if (!id) return;
-          setAccountArchived(db, id, true).then(
-            () => router.back(),
-            () => Alert.alert('Не удалось архивировать', 'Попробуйте ещё раз.'),
-          );
+          if (!id || !begin()) return;
+          setAccountArchived(db, id, true).then(goBack, () => {
+            release();
+            Alert.alert('Не удалось архивировать', 'Попробуйте ещё раз.');
+          });
         },
       },
     ]);
 
   return (
     <Screen bottomInset>
-      <ScreenHeader title={id ? 'Счёт' : 'Новый счёт'} onBack={() => router.back()} />
+      <ScreenHeader title={id ? 'Счёт' : 'Новый счёт'} onBack={goBack} />
       {loaded && (
         <AccountForm
           key={id ?? 'new'}
           initial={loaded.draft}
           takenNames={loaded.takenNames}
           submitLabel={id ? 'Сохранить' : 'Создать'}
+          saving={saving}
           onSubmit={save}
           onArchive={id && !loaded.archived ? archive : undefined}
         />
