@@ -8,20 +8,22 @@ import { AppText } from '../AppText';
 /**
  * Строка списка: слева значок (любой узел), посередине название и вторая строка, справа действия.
  * Нажатие на текстовую часть вызывает onPress; кнопки справа нажимаются отдельно.
+ * Для TalkBack строка читается целиком («название, вторая строка»), а что будет по нажатию, говорит подсказка.
  */
 export function ListRow({
   leading,
   title,
   subtitle,
   onPress,
-  accessibilityLabel,
+  accessibilityHint,
   trailing,
 }: {
   leading: ReactNode;
   title: string;
   subtitle?: string;
   onPress?: () => void;
-  accessibilityLabel?: string;
+  /** Что произойдёт по нажатию («Изменить счёт»); озвучивается после названия строки. */
+  accessibilityHint?: string;
   trailing?: ReactNode;
 }) {
   const t = useTokens();
@@ -29,7 +31,8 @@ export function ListRow({
     <View style={[styles.root, { backgroundColor: t.surface }]}>
       <Pressable
         accessibilityRole={onPress ? 'button' : undefined}
-        accessibilityLabel={accessibilityLabel}
+        accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
+        accessibilityHint={accessibilityHint}
         onPress={onPress}
         style={styles.main}
       >

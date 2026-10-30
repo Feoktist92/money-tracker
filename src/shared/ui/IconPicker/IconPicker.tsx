@@ -2,10 +2,10 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useTokens } from '@/shared/theme/useTokens';
 
-import { AppIcon } from '../AppIcon';
+import { AppIcon, ICON_NAMES } from '../AppIcon';
 import { AppText } from '../AppText';
 
-/** Сетка значков для выбора: кнопки 48 dp, выбранный обведён цветом `accent`. Значки — из реестра AppIcon. */
+/** Сетка значков для выбора: кнопки 48 dp, выбранный обведён цветом `accent`. Значки — из реестра AppIcon; кнопки подписаны русскими названиями («Значок: кофе»). */
 export function IconPicker({
   label,
   icons,
@@ -34,7 +34,7 @@ export function IconPicker({
             <Pressable
               key={name}
               accessibilityRole="button"
-              accessibilityLabel={`Значок ${name}`}
+              accessibilityLabel={`Значок: ${ICON_NAMES[name] ?? name}`}
               accessibilityState={{ selected }}
               onPress={() => onChange(name)}
               style={[styles.cell, { backgroundColor: t.key }, selected && { borderColor: tone, borderWidth: 2 }]}

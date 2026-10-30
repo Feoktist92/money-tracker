@@ -63,6 +63,73 @@ describe('AccountForm', () => {
     expect(texts()).toContain('Введите сумму, например 1 240,50');
   });
 
+  it('баланс вводится цифровой клавиатурой с запятой и точкой', () => {
+    const { input } = render();
+    expect(input('Начальный баланс').props.keyboardType).toBe('decimal-pad');
+  });
+
+  describe('переключатель «Минус» (овердрафт)', () => {
+    const MINUS_LABEL = 'Овердрафт: минус перед суммой';
+
+    it('по умолчанию выключен; нажатие ставит минус перед числом, повторное — убирает', () => {
+      const { button, input, type } = render();
+      type('Название', 'Кредитка');
+      type('Начальный баланс', '5 000');
+      expect(button(MINUS_LABEL)!.props.accessibilityState).toEqual({ selected: false });
+      act(() => button(MINUS_LABEL)!.props.onPress());
+      expect(input('Начальный баланс').props.value).toBe('-5 000');
+      expect(button(MINUS_LABEL)!.props.accessibilityState).toEqual({ selected: true });
+      act(() => button(MINUS_LABEL)!.props.onPress());
+      expect(input('Начальный баланс').props.value).toBe('5 000');
+      expect(button(MINUS_LABEL)!.props.accessibilityState).toEqual({ selected: false });
+    });
+
+    it('включённый минус даёт отрицательный баланс в значении', () => {
+      const { button, type, onSubmit } = render();
+      type('Название', 'Кредитка');
+      type('Начальный баланс', '5 000');
+      act(() => button(MINUS_LABEL)!.props.onPress());
+      act(() => button('Создать')!.props.onPress());
+      expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ initialBalance: -500_000 }));
+    });
+
+    it('состояние берётся из поля: и дефис, и математический минус включают переключатель', () => {
+      const { button, type } = render();
+      type('Начальный баланс', '-100');
+      expect(button(MINUS_LABEL)!.props.accessibilityState).toEqual({ selected: true });
+      type('Начальный баланс', '\u2212100');
+      expect(button(MINUS_LABEL)!.props.accessibilityState).toEqual({ selected: true });
+      type('Начальный баланс', '100');
+      expect(button(MINUS_LABEL)!.props.accessibilityState).toEqual({ selected: false });
+    });
+
+    it('форма правки овердрафтного счёта открывается с включённым минусом; выключение убирает знак', () => {
+      const { button, input, onSubmit } = render({
+        initial: { ...EMPTY_ACCOUNT, name: 'Кредитка', initialBalance: '\u22125\u00A0000' },
+        takenNames: [],
+        submitLabel: 'Сохранить',
+      });
+      expect(button(MINUS_LABEL)!.props.accessibilityState).toEqual({ selected: true });
+      act(() => button(MINUS_LABEL)!.props.onPress());
+      expect(input('Начальный баланс').props.value).toBe('5\u00A0000');
+      act(() => button('Сохранить')!.props.onPress());
+      expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ initialBalance: 500_000 }));
+    });
+
+    it('на пустом поле ставит только минус: сумма ещё не введена, кнопка недоступна, а ошибки пока нет', () => {
+      const { button, input, texts, type } = render();
+      type('Название', 'Кредитка');
+      act(() => button(MINUS_LABEL)!.props.onPress());
+      expect(input('Начальный баланс').props.value).toBe('-');
+      expect(button('Создать')!.props.accessibilityState).toEqual({ disabled: true });
+      expect(texts()).not.toContain('Введите сумму, например 1 240,50');
+      type('Начальный баланс', '-30');
+      expect(button('Создать')!.props.accessibilityState).toEqual({ disabled: false });
+      act(() => button(MINUS_LABEL)!.props.onPress());
+      expect(input('Начальный баланс').props.value).toBe('30');
+    });
+  });
+
   it('тип, цвет и значок попадают в значение; смена типа подставляет значок типа, если свой не выбирали', () => {
     const { button, type, onSubmit } = render();
     type('Название', 'Копилка');
@@ -77,7 +144,7 @@ describe('AccountForm', () => {
   it('свой значок при смене типа не затирается', () => {
     const { button, type, onSubmit } = render();
     type('Название', 'Копилка');
-    act(() => button('Значок wallet')!.props.onPress());
+    act(() => button('Значок: кошелёк')!.props.onPress());
     act(() => button('Накопления')!.props.onPress());
     act(() => button('Создать')!.props.onPress());
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ type: 'savings', icon: 'wallet' }));

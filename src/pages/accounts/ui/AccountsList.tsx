@@ -80,7 +80,7 @@ export function AccountsList({
           leading={<Badge icon={account.icon} color={account.color} />}
           title={account.name}
           subtitle={accountSubtitle(account)}
-          accessibilityLabel={`Изменить счёт ${account.name}`}
+          accessibilityHint="Изменить счёт"
           onPress={() => onOpen(account.id)}
           trailing={
             <>

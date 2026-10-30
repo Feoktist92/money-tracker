@@ -92,7 +92,7 @@ export function CategoriesList({
           leading={<Badge icon={row.icon} color={row.color} />}
           title={row.name}
           subtitle={categorySubtitle(row)}
-          accessibilityLabel={`Изменить категорию ${row.name}`}
+          accessibilityHint="Изменить категорию"
           onPress={() => onOpen(row.id)}
           trailing={
             <>

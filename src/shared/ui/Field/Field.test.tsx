@@ -37,4 +37,10 @@ describe('Field', () => {
     expect(render({ hint: 'До 40 символов' }).texts()).toEqual(['Название', 'До 40 символов']);
     expect(render({ error: null }).texts()).toEqual(['Название']);
   });
+
+  it('accessory стоит справа от поля и не попадает в поле ввода', () => {
+    const { tree } = render({ accessory: <Text accessibilityLabel="Минус">−</Text> });
+    expect(tree.root.findAll((n) => n.props.accessibilityLabel === 'Минус')[0]).toBeDefined();
+    expect(tree.root.findByType(TextInput).props.accessory).toBeUndefined();
+  });
 });

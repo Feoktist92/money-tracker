@@ -55,7 +55,7 @@ export function MorePage() {
           leading={<AppIcon name="wallet" size={22} color={t.accent} />}
           title="Счета"
           subtitle="Карты, накопления, наличные"
-          accessibilityLabel="Открыть счета"
+          accessibilityHint="Открыть список счетов"
           onPress={go('/accounts')}
           trailing={chevron}
         />
@@ -63,7 +63,7 @@ export function MorePage() {
           leading={<AppIcon name="shopping-basket" size={22} color={t.accent} />}
           title="Категории"
           subtitle="Расходы и доходы, лимиты, цвета"
-          accessibilityLabel="Открыть категории"
+          accessibilityHint="Открыть список категорий"
           onPress={go('/categories')}
           trailing={chevron}
         />

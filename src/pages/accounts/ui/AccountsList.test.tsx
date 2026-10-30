@@ -30,6 +30,13 @@ describe('AccountsList', () => {
     );
   });
 
+  it('строка читается TalkBack целиком, а подсказка говорит, что будет по нажатию', () => {
+    const { button } = render();
+    const row = button(`Основная, Карта · 48${NB}215${NB}₽`)!;
+    expect(row.props.accessibilityHint).toBe('Изменить счёт');
+    expect(row.props.accessibilityRole).toBe('button');
+  });
+
   it('кнопки порядка: у первого «выше» недоступна, у последнего «ниже» недоступна', () => {
     const { button } = render();
     expect(button('Поднять выше: Основная')!.props.accessibilityState).toEqual({ disabled: true });
@@ -43,7 +50,7 @@ describe('AccountsList', () => {
     expect(onMove).toHaveBeenCalledWith('a', 1);
     act(() => button('Поднять выше: Накопления')!.props.onPress());
     expect(onMove).toHaveBeenCalledWith('b', -1);
-    act(() => button('Изменить счёт Накопления')!.props.onPress());
+    act(() => button(`Накопления, Накопления · 12${NB}640${NB}₽`)!.props.onPress());
     expect(onOpen).toHaveBeenCalledWith('b');
     act(() => button('Добавить счёт')!.props.onPress());
     expect(onAdd).toHaveBeenCalledTimes(1);

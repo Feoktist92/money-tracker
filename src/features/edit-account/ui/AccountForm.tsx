@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, useColorScheme, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, useColorScheme, View } from 'react-native';
 
 import type { AccountInput } from '@/entities/account';
 import { coinColors, coinIconColors } from '@/shared/theme/tokens';
+import { useTokens } from '@/shared/theme/useTokens';
 import { ACCOUNT_ICON_CHOICES } from '@/shared/ui/AppIcon';
 import { ActionButton } from '@/shared/ui/ActionButton';
+import { AppText } from '@/shared/ui/AppText';
 import { Chips } from '@/shared/ui/Chips';
 import { Field } from '@/shared/ui/Field';
 import { IconPicker } from '@/shared/ui/IconPicker';
@@ -13,6 +15,30 @@ import { SwatchPicker } from '@/shared/ui/SwatchPicker';
 import { ACCOUNT_TYPES, type AccountDraft, validateAccountDraft } from '../model/accountForm';
 
 type Touched = Partial<Record<'name' | 'initialBalance', boolean>>;
+
+/** Ведущий минус: обычный дефис или математический минус (так форматируются отрицательные суммы). */
+const LEADING_MINUS = /^\s*[-\u2212]\s*/;
+
+/**
+ * Переключатель знака баланса. У цифровой клавиатуры Android нет минуса, поэтому овердрафт включается кнопкой:
+ * она ставит или убирает минус перед числом в поле.
+ */
+function MinusToggle({ selected, onPress }: { selected: boolean; onPress: () => void }) {
+  const t = useTokens();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Овердрафт: минус перед суммой"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={[styles.minus, { backgroundColor: selected ? t.tonal : t.key }]}
+    >
+      <AppText variant="label" color={selected ? t.onTonal : t.ink}>
+        Минус
+      </AppText>
+    </Pressable>
+  );
+}
 
 /** Значок по умолчанию для типа: при смене типа подставляется, если пользователь не выбирал свой значок. */
 const defaultIcon = (type: AccountDraft['type']) => ACCOUNT_TYPES.find((item) => item.type === type)?.icon;
@@ -49,6 +75,14 @@ export function AccountForm({
     setDraft((prev) => ({ ...prev, [key]: value }));
     if (key === 'name' || key === 'initialBalance') setTouched((prev) => ({ ...prev, [key]: true }));
   };
+
+  const negativeBalance = LEADING_MINUS.test(draft.initialBalance);
+  // Знак меняется без пометки «поле тронуто»: ошибка про сумму появится, когда пользователь начнёт вводить число.
+  const toggleMinus = () =>
+    setDraft((prev) => {
+      const digits = prev.initialBalance.replace(LEADING_MINUS, '');
+      return { ...prev, initialBalance: LEADING_MINUS.test(prev.initialBalance) ? digits : `-${digits}` };
+    });
 
   const result = validateAccountDraft(draft, takenNames);
   const errors = result.ok ? {} : result.errors;
@@ -93,8 +127,9 @@ export function AccountForm({
         value={draft.initialBalance}
         onChangeText={(value) => set('initialBalance', value)}
         error={touched.initialBalance ? errors.initialBalance : null}
-        hint="Сколько на счёте сейчас. Пусто — ноль; для овердрафта можно с минусом."
-        keyboardType="numbers-and-punctuation"
+        hint="Сколько на счёте сейчас. Пусто — ноль. Для овердрафта нажмите «Минус»."
+        keyboardType="decimal-pad"
+        accessory={<MinusToggle selected={negativeBalance} onPress={toggleMinus} />}
       />
       <View style={styles.actions}>
         <ActionButton
@@ -114,4 +149,5 @@ export function AccountForm({
 const styles = StyleSheet.create({
   content: { padding: 20, gap: 20 },
   actions: { gap: 12, paddingTop: 4 },
+  minus: { minHeight: 48, paddingHorizontal: 16, borderRadius: 24, justifyContent: 'center' },
 });

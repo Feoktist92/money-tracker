@@ -39,7 +39,7 @@ describe('CategoryForm', () => {
     type('Название', 'Спорт');
     type('Месячный лимит', '3 000');
     act(() => button('Синий')!.props.onPress());
-    act(() => button('Значок dumbbell')!.props.onPress());
+    act(() => button('Значок: гантель')!.props.onPress());
     act(() => button('Создать')!.props.onPress());
     expect(onSubmit).toHaveBeenCalledWith({
       name: 'Спорт',
@@ -72,6 +72,11 @@ describe('CategoryForm', () => {
     const { button } = render({ kindEditable: false });
     expect(button('Расход')).toBeUndefined();
     expect(button('Доход')).toBeUndefined();
+  });
+
+  it('лимит вводится цифровой клавиатурой: минус ему не нужен', () => {
+    const { input } = render();
+    expect(input('Месячный лимит')!.props.keyboardType).toBe('decimal-pad');
   });
 
   it('лимит ноль — ошибка под полем', () => {

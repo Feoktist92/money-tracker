@@ -75,9 +75,16 @@ describe('CategoriesList', () => {
     expect(texts()).toContain('Архив (1)');
   });
 
+  it('строка читается TalkBack целиком, а подсказка говорит, что будет по нажатию', () => {
+    const { button } = render();
+    const food = button(`Продукты, Лимит 18${NB}000${NB}₽`)!;
+    expect(food.props.accessibilityHint).toBe('Изменить категорию');
+    expect(food.props.accessibilityRole).toBe('button');
+  });
+
   it('нажатие на строку открывает форму', () => {
     const { button, onOpen } = render();
-    act(() => button('Изменить категорию Кафе')!.props.onPress());
+    act(() => button('Кафе, Без лимита')!.props.onPress());
     expect(onOpen).toHaveBeenCalledWith('cafe');
   });
 });

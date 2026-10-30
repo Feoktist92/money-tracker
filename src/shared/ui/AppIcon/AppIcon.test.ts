@@ -1,6 +1,6 @@
 import { DEFAULT_ACCOUNTS, DEFAULT_CATEGORIES } from '@/shared/db/seed';
 
-import { ACCOUNT_ICON_CHOICES, CATEGORY_ICON_CHOICES, ICONS, resolveIcon } from './AppIcon';
+import { ACCOUNT_ICON_CHOICES, CATEGORY_ICON_CHOICES, ICON_NAMES, ICONS, resolveIcon } from './AppIcon';
 
 describe('AppIcon', () => {
   it('у каждого значка счетов и категорий из сида есть компонент', () => {
@@ -49,6 +49,20 @@ describe('AppIcon', () => {
       'chevron-right',
     ]) {
       expect(name in ICONS).toBe(true);
+    }
+  });
+
+  it('у каждого значка есть непустое русское название, лишних названий нет', () => {
+    const missing = Object.keys(ICONS).filter((name) => !ICON_NAMES[name]?.trim());
+    expect(missing).toEqual([]);
+    expect(Object.keys(ICON_NAMES).filter((name) => !(name in ICONS))).toEqual([]);
+    for (const title of Object.values(ICON_NAMES)) expect(title).toMatch(/^[а-яё ]+$/);
+  });
+
+  it('среди значков для выбора названия не повторяются: TalkBack различает кнопки', () => {
+    for (const choices of [ACCOUNT_ICON_CHOICES, CATEGORY_ICON_CHOICES]) {
+      const titles = choices.map((name) => ICON_NAMES[name]);
+      expect(new Set(titles).size).toBe(titles.length);
     }
   });
 });

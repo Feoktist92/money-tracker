@@ -68,7 +68,7 @@ describe('CategoryEditPage', () => {
     type('Название', 'Спорт');
     type('Месячный лимит', '3 000');
     await act(async () => button('Синий')!.props.onPress());
-    await act(async () => button('Значок dumbbell')!.props.onPress());
+    await act(async () => button('Значок: гантель')!.props.onPress());
     await press('Создать');
     expect(await byName('Спорт')).toMatchObject({
       kind: 'expense',

@@ -96,7 +96,7 @@ export function CategoryForm({
           onChangeText={(value) => set('monthlyLimit', value)}
           error={touched.monthlyLimit ? errors.monthlyLimit : null}
           hint="Пусто — без лимита."
-          keyboardType="numbers-and-punctuation"
+          keyboardType="decimal-pad"
         />
       )}
       <View style={styles.actions}>
