@@ -10,7 +10,7 @@ import { CategoriesList } from './CategoriesList';
 export function CategoriesPage() {
   const { data, move, restore } = useCategoriesScreen();
   return (
-    <Screen>
+    <Screen bottomInset>
       <ScreenHeader title="Категории" onBack={() => router.back()} />
       {data && (
         <CategoriesList

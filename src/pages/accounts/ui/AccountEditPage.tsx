@@ -80,7 +80,7 @@ export function AccountEditPage() {
     ]);
 
   return (
-    <Screen>
+    <Screen bottomInset>
       <ScreenHeader title={id ? 'Счёт' : 'Новый счёт'} onBack={() => router.back()} />
       {loaded && (
         <AccountForm

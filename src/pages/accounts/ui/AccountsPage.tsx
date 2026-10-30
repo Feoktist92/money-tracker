@@ -12,7 +12,7 @@ import { AccountsList } from './AccountsList';
 export function AccountsPage() {
   const { data, move, restore } = useAccountsScreen();
   return (
-    <Screen>
+    <Screen bottomInset>
       <ScreenHeader title="Счета" onBack={() => router.back()} />
       {data && (
         <AccountsList

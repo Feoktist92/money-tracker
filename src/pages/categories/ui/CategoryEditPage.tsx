@@ -92,7 +92,7 @@ export function CategoryEditPage() {
     );
 
   return (
-    <Screen>
+    <Screen bottomInset>
       <ScreenHeader title={id ? 'Категория' : 'Новая категория'} onBack={() => router.back()} />
       {loaded && (
         <CategoryForm
