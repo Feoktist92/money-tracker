@@ -123,6 +123,7 @@ export function CategoryEditPage() {
           takenNamesByKind={loaded.takenNamesByKind}
           submitLabel={id ? 'Сохранить' : 'Создать'}
           saving={saving}
+          showErrorsInitially={Boolean(id)}
           onSubmit={save}
           onArchive={id && !loaded.archived ? archive : undefined}
         />

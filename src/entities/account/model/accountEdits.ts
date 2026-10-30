@@ -1,9 +1,10 @@
-import { asc, eq, inArray, max, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, max, ne, sql } from 'drizzle-orm';
 
 import { accounts } from '@/shared/db/schema';
 import type { Account, Db } from '@/shared/db/types';
 import { newId } from '@/shared/lib/id';
 import type { Kopecks } from '@/shared/lib/money';
+import { freeName } from '@/shared/lib/unique-name';
 
 /** Поля счёта, которые задаёт пользователь в форме. */
 export interface AccountInput {
@@ -36,16 +37,31 @@ export async function updateAccount(db: Db, id: string, patch: Partial<AccountIn
   await db.update(accounts).set(next).where(eq(accounts.id, id));
 }
 
-/** Архив: счёт пропадает из лотка и шторки, операции остаются. Возврат из архива ставит счёт в конец списка. */
-export async function setAccountArchived(db: Db, id: string, archived: boolean): Promise<void> {
+/**
+ * Архив: счёт пропадает из лотка и шторки, операции остаются. Возврат из архива ставит счёт в конец списка; если
+ * среди активных уже есть счёт с таким названием, возвращённый получает «(2)», «(3)»… — возврат никогда не
+ * отказывает и не создаёт двух одинаковых активных названий. Результат — итоговое название; null — такого счёта нет.
+ */
+export async function setAccountArchived(db: Db, id: string, archived: boolean): Promise<{ name: string } | null> {
+  const row = await getAccount(db, id);
+  if (!row) return null;
   if (archived) {
     await db.update(accounts).set({ archived: true }).where(eq(accounts.id, id));
-    return;
+    return { name: row.name };
   }
+  const active = await db
+    .select({ name: accounts.name })
+    .from(accounts)
+    .where(and(eq(accounts.archived, false), ne(accounts.id, id)));
+  const name = freeName(
+    row.name,
+    active.map((a) => a.name),
+  );
   await db
     .update(accounts)
-    .set({ archived: false, sortOrder: await nextSortOrder(db) })
+    .set({ archived: false, sortOrder: await nextSortOrder(db), name })
     .where(eq(accounts.id, id));
+  return { name };
 }
 
 /**

@@ -29,6 +29,7 @@ export function AccountForm({
   onSubmit,
   onArchive,
   saving = false,
+  showErrorsInitially = false,
 }: {
   initial: AccountDraft;
   takenNames: readonly string[];
@@ -38,10 +39,12 @@ export function AccountForm({
   onArchive?: () => void;
   /** Запись идёт: кнопки недоступны, повторное нажатие не создаёт дубль. */
   saving?: boolean;
+  /** Правка существующего счёта: ошибки видны сразу, а не после первой правки поля (например, название уже занято). */
+  showErrorsInitially?: boolean;
 }) {
   const dark = useColorScheme() === 'dark';
   const [draft, setDraft] = useState(initial);
-  const [touched, setTouched] = useState<Touched>({});
+  const [touched, setTouched] = useState<Touched>(showErrorsInitially ? { name: true, initialBalance: true } : {});
   const set = <K extends keyof AccountDraft>(key: K, value: AccountDraft[K]) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
     if (key === 'name' || key === 'initialBalance') setTouched((prev) => ({ ...prev, [key]: true }));

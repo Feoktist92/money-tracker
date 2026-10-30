@@ -27,6 +27,7 @@ export function CategoryForm({
   onSubmit,
   onArchive,
   saving = false,
+  showErrorsInitially = false,
 }: {
   initial: CategoryDraft;
   /** Вид можно выбрать только при создании. */
@@ -39,10 +40,12 @@ export function CategoryForm({
   onArchive?: () => void;
   /** Запись идёт: кнопки недоступны, повторное нажатие не создаёт дубль. */
   saving?: boolean;
+  /** Правка существующей категории: ошибки видны сразу, а не после первой правки поля (например, название уже занято). */
+  showErrorsInitially?: boolean;
 }) {
   const dark = useColorScheme() === 'dark';
   const [draft, setDraft] = useState(initial);
-  const [touched, setTouched] = useState<Touched>({});
+  const [touched, setTouched] = useState<Touched>(showErrorsInitially ? { name: true, monthlyLimit: true } : {});
   const set = <K extends keyof CategoryDraft>(key: K, value: CategoryDraft[K]) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
     if (key === 'name' || key === 'monthlyLimit') setTouched((prev) => ({ ...prev, [key]: true }));

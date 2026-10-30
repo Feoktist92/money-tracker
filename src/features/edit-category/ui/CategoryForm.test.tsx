@@ -94,6 +94,22 @@ describe('CategoryForm', () => {
     expect(saving.button('Архивировать')!.props.accessibilityState).toEqual({ disabled: true });
   });
 
+  it('showErrorsInitially: занятое название видно сразу, без ввода; без флага — нет', () => {
+    const initial = { ...emptyCategory('expense'), name: 'Кафе' };
+    expect(render({ initial }).texts()).not.toContain('Категория с таким названием уже есть');
+    const { texts, button } = render({ initial, showErrorsInitially: true, submitLabel: 'Сохранить' });
+    expect(texts()).toContain('Категория с таким названием уже есть');
+    expect(button('Сохранить')!.props.accessibilityState).toEqual({ disabled: true });
+  });
+
+  it('showErrorsInitially: ошибка лимита тоже видна сразу', () => {
+    const { texts } = render({
+      initial: { ...emptyCategory('expense'), name: 'Спорт', monthlyLimit: '0' },
+      showErrorsInitially: true,
+    });
+    expect(texts()).toContain('Лимит должен быть больше нуля');
+  });
+
   it('«Архивировать» есть только у существующей категории', () => {
     expect(render().button('Архивировать')).toBeUndefined();
     const onArchive = jest.fn();

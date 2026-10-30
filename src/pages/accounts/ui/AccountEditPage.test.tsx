@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Alert, TextInput } from 'react-native';
+import { Alert, Text, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { act, create } from 'react-test-renderer';
 
@@ -51,12 +51,13 @@ async function mount() {
   const input = (label: string) =>
     tree.root.findAll((n) => n.type === TextInput && n.props.accessibilityLabel === label)[0]!;
   const type = (label: string, value: string) => act(() => input(label).props.onChangeText(value));
+  const texts = () => tree.root.findAllByType(Text).map((n) => String(n.props.children));
   const press = async (label: string) => {
     await act(async () => {
       button(label)!.props.onPress();
     });
   };
-  return { tree, button, input, type, press };
+  return { tree, button, input, type, press, texts };
 }
 
 const byName = async (name: string) => (await db.select().from(accounts)).find((a) => a.name === name);
@@ -103,6 +104,23 @@ describe('AccountEditPage', () => {
     expect(button('Сохранить')!.props.accessibilityState).toEqual({ disabled: false });
     await press('Сохранить');
     expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('правка счёта с уже занятым названием: ошибка видна сразу, «Сохранить» недоступна', async () => {
+    const twin = { name: 'Близнец', type: 'savings', icon: 'piggy-bank', color: 'teal' } as const;
+    await db.insert(accounts).values([
+      { ...twin, id: 'twin-a', sortOrder: 50 },
+      { ...twin, id: 'twin-b', sortOrder: 51 },
+    ]);
+    (useLocalSearchParams as jest.Mock).mockReturnValue({ id: 'twin-b' });
+    const { texts, button } = await mount();
+    expect(texts()).toContain('Счёт с таким названием уже есть');
+    expect(button('Сохранить')!.props.accessibilityState).toEqual({ disabled: true });
+  });
+
+  it('новый счёт: ошибок до ввода нет', async () => {
+    const { texts } = await mount();
+    expect(texts()).not.toContain('Введите название');
   });
 
   it('двойное нажатие записывает один раз и закрывает экран один раз', async () => {

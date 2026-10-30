@@ -1,9 +1,10 @@
-import { and, asc, eq, inArray, max, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, max, ne, sql } from 'drizzle-orm';
 
 import { categories } from '@/shared/db/schema';
 import type { Category, Db } from '@/shared/db/types';
 import { newId } from '@/shared/lib/id';
 import type { Kopecks } from '@/shared/lib/money';
+import { freeName } from '@/shared/lib/unique-name';
 
 /** Поля категории, которые задаёт пользователь в форме. Вид (расход или доход) задаётся при создании и дальше не меняется. */
 export interface CategoryInput {
@@ -44,18 +45,32 @@ export async function updateCategory(db: Db, id: string, patch: Partial<Omit<Cat
   await db.update(categories).set(next).where(eq(categories.id, id));
 }
 
-/** Архив: категория пропадает из мозаики и лотка, операции остаются. Возврат ставит её в конец списка своего вида. */
-export async function setCategoryArchived(db: Db, id: string, archived: boolean): Promise<void> {
+/**
+ * Архив: категория пропадает из мозаики и лотка, операции остаются. Возврат ставит её в конец списка своего вида; если
+ * среди активных категорий того же вида уже есть такое название, возвращённая получает «(2)», «(3)»… — возврат
+ * никогда не отказывает и не создаёт двух одинаковых активных названий. Результат — итоговое название; null —
+ * такой категории нет.
+ */
+export async function setCategoryArchived(db: Db, id: string, archived: boolean): Promise<{ name: string } | null> {
+  const row = await getCategory(db, id);
+  if (!row) return null;
   if (archived) {
     await db.update(categories).set({ archived: true }).where(eq(categories.id, id));
-    return;
+    return { name: row.name };
   }
-  const row = await getCategory(db, id);
-  if (!row) return;
+  const active = await db
+    .select({ name: categories.name })
+    .from(categories)
+    .where(and(eq(categories.archived, false), eq(categories.kind, row.kind), ne(categories.id, id)));
+  const name = freeName(
+    row.name,
+    active.map((c) => c.name),
+  );
   await db
     .update(categories)
-    .set({ archived: false, sortOrder: await nextSortOrder(db, row.kind) })
+    .set({ archived: false, sortOrder: await nextSortOrder(db, row.kind), name })
     .where(eq(categories.id, id));
+  return { name };
 }
 
 /** Новый порядок категорий одного вида (см. reorderAccounts). */

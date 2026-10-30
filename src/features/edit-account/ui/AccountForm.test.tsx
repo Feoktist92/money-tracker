@@ -92,6 +92,22 @@ describe('AccountForm', () => {
     expect(saving.button('Архивировать')!.props.accessibilityState).toEqual({ disabled: true });
   });
 
+  it('showErrorsInitially: занятое название видно сразу, без ввода; без флага — нет', () => {
+    const initial = { ...EMPTY_ACCOUNT, name: 'Основная' };
+    expect(render({ initial }).texts()).not.toContain('Счёт с таким названием уже есть');
+    const { texts, button } = render({ initial, showErrorsInitially: true, submitLabel: 'Сохранить' });
+    expect(texts()).toContain('Счёт с таким названием уже есть');
+    expect(button('Сохранить')!.props.accessibilityState).toEqual({ disabled: true });
+  });
+
+  it('showErrorsInitially: ошибка баланса тоже видна сразу', () => {
+    const { texts } = render({
+      initial: { ...EMPTY_ACCOUNT, name: 'Кредитка', initialBalance: 'abc' },
+      showErrorsInitially: true,
+    });
+    expect(texts()).toContain('Введите сумму, например 1 240,50');
+  });
+
   it('«Архивировать» есть только у существующего счёта', () => {
     expect(render().button('Архивировать')).toBeUndefined();
     const onArchive = jest.fn();

@@ -110,6 +110,7 @@ export function AccountEditPage() {
           takenNames={loaded.takenNames}
           submitLabel={id ? 'Сохранить' : 'Создать'}
           saving={saving}
+          showErrorsInitially={Boolean(id)}
           onSubmit={save}
           onArchive={id && !loaded.archived ? archive : undefined}
         />
