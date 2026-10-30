@@ -20,6 +20,8 @@ export interface BudgetRow {
   categoryId: string;
   name: string;
   icon: string;
+  /** Ключ цвета категории (categories.color). */
+  color: string;
   hasLimit: boolean;
   limit: Kopecks;
   carryIn: Kopecks;
@@ -104,6 +106,7 @@ export async function getBudgetOverview(db: Db, today: DateKey, settings: Budget
       categoryId: c.id,
       name: c.name,
       icon: c.icon,
+      color: c.color,
       hasLimit,
       limit: month.limit,
       carryIn: month.carryIn,

@@ -192,11 +192,24 @@ describe('tileState', () => {
   });
 });
 
+describe('цвет категории в строке бюджета', () => {
+  it('строка несёт ключ цвета категории из базы', async () => {
+    const { db, overview } = await demoOverview();
+    expect(overview.rows.every((r) => r.color === 'violet')).toBe(true);
+    const { category } = await seededIds(db);
+    await db.update(categories).set({ color: 'teal' }).where(eq(categories.id, category['Кафе']!));
+    const next = await getBudgetOverview(db, TODAY, SETTINGS);
+    expect(next.rows.find((r) => r.name === 'Кафе')!.color).toBe('teal');
+    expect(next.rows.find((r) => r.name === 'Продукты')!.color).toBe('violet');
+  });
+});
+
 describe('projectExpense', () => {
   const base: BudgetRow = {
     categoryId: 'c',
     name: 'Продукты',
     icon: 'shopping-basket',
+    color: 'violet',
     hasLimit: true,
     limit: 1_800_000,
     carryIn: 0,
