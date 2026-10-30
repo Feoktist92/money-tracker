@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, useColorScheme, View } from 'react-native';
+import { StyleSheet, useColorScheme, View } from 'react-native';
 
 import type { CategoryInput } from '@/entities/category';
 import { CATEGORY_COLOR_KEYS, categoryColors, resolveCategoryColor } from '@/shared/theme/tokens';
@@ -9,6 +9,7 @@ import { CATEGORY_ICON_CHOICES } from '@/shared/ui/AppIcon';
 import { Chips } from '@/shared/ui/Chips';
 import { Field } from '@/shared/ui/Field';
 import { IconPicker } from '@/shared/ui/IconPicker';
+import { KeyboardAwareScroll } from '@/shared/ui/KeyboardAwareScroll';
 import { SwatchPicker } from '@/shared/ui/SwatchPicker';
 
 import { type CategoryDraft, defaultCategoryIcon, validateCategoryDraft } from '../model/categoryForm';
@@ -64,7 +65,7 @@ export function CategoryForm({
   const accent = palette[resolveCategoryColor(draft.color)].strong;
 
   return (
-    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAwareScroll contentContainerStyle={styles.content}>
       <Field
         label="Название"
         value={draft.name}
@@ -118,7 +119,7 @@ export function CategoryForm({
         />
         {onArchive && <ActionButton label="Архивировать" variant="danger" disabled={saving} onPress={onArchive} />}
       </View>
-    </ScrollView>
+    </KeyboardAwareScroll>
   );
 }
 

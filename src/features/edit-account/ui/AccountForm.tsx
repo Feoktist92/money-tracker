@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, useColorScheme, View } from 'react-native';
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native';
 
 import type { AccountInput } from '@/entities/account';
 import { coinColors, coinIconColors } from '@/shared/theme/tokens';
@@ -10,6 +10,7 @@ import { AppText } from '@/shared/ui/AppText';
 import { Chips } from '@/shared/ui/Chips';
 import { Field } from '@/shared/ui/Field';
 import { IconPicker } from '@/shared/ui/IconPicker';
+import { KeyboardAwareScroll } from '@/shared/ui/KeyboardAwareScroll';
 import { SwatchPicker } from '@/shared/ui/SwatchPicker';
 
 import { ACCOUNT_TYPES, type AccountDraft, validateAccountDraft } from '../model/accountForm';
@@ -95,7 +96,7 @@ export function AccountForm({
   }));
 
   return (
-    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAwareScroll contentContainerStyle={styles.content}>
       <Field
         label="Название"
         value={draft.name}
@@ -142,7 +143,7 @@ export function AccountForm({
         />
         {onArchive && <ActionButton label="Архивировать" variant="danger" disabled={saving} onPress={onArchive} />}
       </View>
-    </ScrollView>
+    </KeyboardAwareScroll>
   );
 }
 
