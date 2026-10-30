@@ -5,27 +5,29 @@ import { type DragSource, type DropTargetInfo, useCoinDrag } from '@/features/co
 
 import { formatMoney, type Kopecks } from '@/shared/lib/money';
 import { type CoinColor } from '@/shared/theme/tokens';
-import { useCoinColors, useCoinIconColors, useTokens } from '@/shared/theme/useTokens';
+import { useCategoryColor, useCoinColors, useCoinIconColors, useTokens } from '@/shared/theme/useTokens';
 import { AppIcon } from '@/shared/ui/AppIcon';
 import { AppText } from '@/shared/ui/AppText';
 
 export type CoinProps =
-  | { kind: 'income'; id: string; name: string; icon: string }
+  | { kind: 'income'; id: string; name: string; icon: string; color: string }
   | { kind: 'account'; id: string; name: string; icon: string; color: string; balance: Kopecks };
 
 const isCoinColor = (value: string, palette: Record<CoinColor, string>): value is CoinColor =>
   Object.hasOwn(palette, value);
 
-/** Монета-пилюля лотка: доход — кольцо цвета accent без заливки, счёт — цветной круг со значком и балансом. */
+/** Монета-пилюля лотка: доход — кольцо цвета категории без заливки, счёт — цветной круг со значком и балансом. */
 export function Coin(props: CoinProps) {
   const t = useTokens();
   const fills = useCoinColors();
   const icons = useCoinIconColors();
+  // у монеты дохода кольцо и значок — насыщенный тон цвета категории; у счёта цвет берётся из coinColors
+  const ring = useCategoryColor(props.kind === 'income' ? props.color : 'violet').strong;
   const income = props.kind === 'income';
   const colorKey: CoinColor = !income && isCoinColor(props.color, fills) ? props.color : 'violet';
 
   const source: DragSource = income
-    ? { kind: 'income', id: props.id, name: props.name, icon: props.icon }
+    ? { kind: 'income', id: props.id, name: props.name, icon: props.icon, color: props.color }
     : { kind: 'account', id: props.id, name: props.name, icon: props.icon, color: props.color };
   const asTarget: DropTargetInfo | null = income ? null : { kind: 'account', id: props.id, name: props.name };
   const { ref, gesture, visual } = useCoinDrag(source, asTarget);
@@ -40,7 +42,7 @@ export function Coin(props: CoinProps) {
       : visual === 'hover'
         ? { backgroundColor: t.dropTarget.tile }
         : income
-          ? { borderColor: t.accent }
+          ? { borderColor: ring }
           : { backgroundColor: t.surface };
   const pillStyle = income ? { borderWidth: 2, ...pillTone } : pillTone;
 
@@ -59,11 +61,11 @@ export function Coin(props: CoinProps) {
           style={[
             styles.avatar,
             visual === 'source' && styles.hidden,
-            income ? { borderWidth: 2, borderColor: t.accent } : { backgroundColor: fills[colorKey] },
+            income ? { borderWidth: 2, borderColor: ring } : { backgroundColor: fills[colorKey] },
           ]}
         >
           {!income && <View style={styles.innerRing} />}
-          <AppIcon name={props.icon} size={income ? 20 : 18} color={income ? t.accent : icons[colorKey]} />
+          <AppIcon name={props.icon} size={income ? 20 : 18} color={income ? ring : icons[colorKey]} />
         </View>
         <View style={[styles.text, visual === 'source' && styles.hidden]}>
           <AppText variant="label" weight={600} numberOfLines={1} style={styles.name}>

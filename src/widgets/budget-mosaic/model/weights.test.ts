@@ -6,6 +6,7 @@ const row = (patch: Partial<BudgetRow>): BudgetRow => ({
   categoryId: 'c',
   name: 'Категория',
   icon: 'house',
+  color: 'violet',
   hasLimit: true,
   limit: 1000,
   carryIn: 0,

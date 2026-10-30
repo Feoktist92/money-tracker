@@ -1,3 +1,4 @@
+import { type Href, router } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -45,8 +46,18 @@ export function BudgetPage() {
         summary={summary}
         notificationCount={0}
       />
-      <Mosaic rows={overview.rows} carryFrom={carryFrom} onTilePress={flow.openForTile} />
-      <CoinTray income={data.income} accounts={data.accounts} />
+      <Mosaic
+        rows={overview.rows}
+        carryFrom={carryFrom}
+        onTilePress={(row) => router.push(`/categories/edit?id=${encodeURIComponent(row.categoryId)}` as Href)}
+        onTileQuickEntry={flow.openForTile}
+        onAddCategory={() => router.push('/categories/edit?kind=expense' as Href)}
+      />
+      <CoinTray
+        income={data.income}
+        accounts={data.accounts}
+        onAddAccount={() => router.push('/accounts/edit' as Href)}
+      />
       <AmountSheet
         info={flow.info}
         recent={flow.recent}

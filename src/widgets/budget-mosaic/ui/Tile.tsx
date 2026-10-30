@@ -6,7 +6,7 @@ import { useDropTarget } from '@/features/coin-drag';
 import type { BudgetRow } from '@/entities/budget';
 import { formatMoney } from '@/shared/lib/money';
 import { radii } from '@/shared/theme/tokens';
-import { useTokens } from '@/shared/theme/useTokens';
+import { useCategoryColor, useTokens } from '@/shared/theme/useTokens';
 import { AppIcon } from '@/shared/ui/AppIcon';
 import { AppText } from '@/shared/ui/AppText';
 
@@ -20,6 +20,8 @@ export interface TileRect {
   height: number;
 }
 
+const QUICK_ENTRY_ACTIONS = [{ name: 'record', label: 'Записать расход' }];
+
 const rub = (v: number) => formatMoney(v, { kopecks: 'never' });
 const plain = (v: number) => formatMoney(v, { kopecks: 'never', currency: false });
 
@@ -31,6 +33,7 @@ export function Tile({
   fontScale,
   clipRef,
   onPress,
+  onQuickEntry,
   raised = false,
 }: {
   row: BudgetRow;
@@ -40,12 +43,15 @@ export function Tile({
   fontScale: number;
   /** Видимая область, в которой плитка принимает бросок (viewport прокрутки); без неё — вся плитка. */
   clipRef?: RefObject<View | null>;
-  /** Нажатие на плитку (записать расход без перетаскивания). */
+  /** Нажатие на плитку: открыть форму категории. */
   onPress?: (row: BudgetRow) => void;
+  /** Действие TalkBack «Записать расход»: шторка суммы без перетаскивания монеты. */
+  onQuickEntry?: (row: BudgetRow) => void;
   /** Плитка-превью над шторкой суммы: рамка accent 2 dp, не принимает бросок монеты. */
   raised?: boolean;
 }) {
   const t = useTokens();
+  const category = useCategoryColor(row.color);
   const { ref, visual } = useDropTarget({ kind: 'category', id: row.categoryId, name: row.name }, clipRef, !raised);
   const plan = planTileText({ width: rect.width, height: rect.height, fontScale, hasCarry: row.carryIn !== 0 });
 
@@ -54,7 +60,7 @@ export function Tile({
       ? { background: t.over.tile, fill: null, ink: t.over.text, secondary: t.over.text, carry: t.over.text }
       : row.state === 'near'
         ? { background: t.near.tile, fill: t.near.fill, ink: t.near.text, secondary: t.near.text, carry: t.near.text }
-        : { background: t.tile, fill: t.fill, ink: t.ink, secondary: t.inkSecondary, carry: t.carry };
+        : { background: category.tile, fill: category.fill, ink: t.ink, secondary: t.inkSecondary, carry: t.carry };
   // Плитка под монетой: фон из токена drop-target (заливка остаётся своей: у перерасхода её нет), поверх — рамка 3 dp
   const palette = visual === 'hover' ? { ...base, background: t.dropTarget.tile } : base;
 
@@ -71,6 +77,14 @@ export function Tile({
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={tileLabel(row)}
       onPress={onPress ? () => onPress(row) : undefined}
+      accessibilityActions={onQuickEntry ? QUICK_ENTRY_ACTIONS : undefined}
+      onAccessibilityAction={
+        onQuickEntry
+          ? (event) => {
+              if (event.nativeEvent.actionName === 'record') onQuickEntry(row);
+            }
+          : undefined
+      }
       style={[
         styles.tile,
         { left: rect.x, top: rect.y, width: rect.width, height: rect.height, backgroundColor: palette.background },

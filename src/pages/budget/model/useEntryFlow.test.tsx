@@ -30,6 +30,7 @@ beforeAll(async () => {
     categoryId: food().id,
     name: 'Продукты',
     icon: 'shopping-basket',
+    color: 'violet',
     hasLimit: true,
     limit: 1_800_000,
     carryIn: 0,

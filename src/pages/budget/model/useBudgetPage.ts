@@ -12,7 +12,7 @@ import { type DateKey, toDateKey } from '@/shared/lib/period';
 export interface BudgetPageData {
   today: DateKey;
   overview: BudgetOverview;
-  income: { id: string; name: string; icon: string }[];
+  income: { id: string; name: string; icon: string; color: string }[];
   accounts: { id: string; name: string; icon: string; color: string; balance: Kopecks }[];
 }
 
@@ -30,7 +30,7 @@ async function load(): Promise<BudgetPageData> {
   return {
     today,
     overview,
-    income: income.map(({ id, name, icon }) => ({ id, name, icon })),
+    income: income.map(({ id, name, icon, color }) => ({ id, name, icon, color })),
     accounts: accounts.map((a) => ({
       id: a.id,
       name: a.name,

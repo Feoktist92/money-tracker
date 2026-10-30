@@ -4,6 +4,9 @@ import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native'
 import type { BudgetRow } from '@/entities/budget';
 import { layoutMosaic } from '@/shared/lib/mosaic';
 import { layout } from '@/shared/theme/tokens';
+import { useTokens } from '@/shared/theme/useTokens';
+import { ActionButton } from '@/shared/ui/ActionButton';
+import { AppText } from '@/shared/ui/AppText';
 
 import { tileWeight } from '../model/weights';
 import { Tile } from './Tile';
@@ -13,12 +16,19 @@ export function Mosaic({
   rows,
   carryFrom,
   onTilePress,
+  onTileQuickEntry,
+  onAddCategory,
 }: {
   rows: BudgetRow[];
   carryFrom: string;
   /** Нажатие на плитку категории. */
   onTilePress?: (row: BudgetRow) => void;
+  /** Действие TalkBack «Записать расход» на плитке. */
+  onTileQuickEntry?: (row: BudgetRow) => void;
+  /** Кнопка пустого состояния, когда категорий расхода нет. */
+  onAddCategory?: () => void;
 }) {
+  const t = useTokens();
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
   const { fontScale } = useWindowDimensions();
   // видимая область мозаики: плитки, прокрученные за её край, не принимают бросок монеты
@@ -55,6 +65,7 @@ export function Mosaic({
         fontScale={fontScale}
         clipRef={viewportRef}
         onPress={onTilePress}
+        onQuickEntry={onTileQuickEntry}
       />
     ) : null;
   });
@@ -70,6 +81,14 @@ export function Mosaic({
         setSize((prev) => (prev && prev.width === width && prev.height === height ? prev : { width, height }));
       }}
     >
+      {rows.length === 0 && onAddCategory && (
+        <View style={styles.empty}>
+          <AppText color={t.inkSecondary} style={styles.emptyText}>
+            Категорий расходов пока нет
+          </AppText>
+          <ActionButton label="Добавить категорию" onPress={onAddCategory} />
+        </View>
+      )}
       {mosaic &&
         size &&
         (mosaic.contentHeight > size.height ? (
@@ -83,4 +102,8 @@ export function Mosaic({
   );
 }
 
-const styles = StyleSheet.create({ root: { flex: 1 } });
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
+  emptyText: { textAlign: 'center' },
+});

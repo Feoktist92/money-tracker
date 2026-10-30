@@ -18,7 +18,9 @@ function label(element: React.ReactElement) {
 
 describe('Coin', () => {
   it('монета дохода подписана «доход»', () => {
-    expect(label(<Coin kind="income" id="salary" name="Зарплата" icon="arrow-down-to-line" />)).toBe('Зарплата, доход');
+    expect(label(<Coin kind="income" id="salary" name="Зарплата" icon="arrow-down-to-line" color="violet" />)).toBe(
+      'Зарплата, доход',
+    );
   });
 
   it('монета счёта подписана балансом', () => {
@@ -53,7 +55,7 @@ describe('Coin', () => {
     const main = { kind: 'account', id: 'main', name: 'Основная', icon: 'credit-card', color: 'violet' } as const;
     const salary = { kind: 'income', id: 'salary', name: 'Зарплата', icon: 'arrow-down-to-line' } as const;
     const accountCoin = <Coin kind="account" id="main" name="Основная" icon="credit-card" color="violet" balance={0} />;
-    const incomeCoin = <Coin kind="income" id="salary" name="Зарплата" icon="arrow-down-to-line" />;
+    const incomeCoin = <Coin kind="income" id="salary" name="Зарплата" icon="arrow-down-to-line" color="violet" />;
     const mount = (element: React.ReactElement) => {
       let tree!: ReturnType<typeof create>;
       act(() => {

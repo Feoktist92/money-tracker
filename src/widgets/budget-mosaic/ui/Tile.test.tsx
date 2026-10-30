@@ -3,6 +3,7 @@ import { act, create } from 'react-test-renderer';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { BudgetRow } from '@/entities/budget';
+import { categoryColors, tokens } from '@/shared/theme/tokens';
 import { useDragStore } from '@/features/coin-drag';
 
 import { Tile } from './Tile';
@@ -17,6 +18,7 @@ const row = (patch: Partial<BudgetRow>): BudgetRow => ({
   categoryId: 'c',
   name: 'Продукты',
   icon: 'shopping-basket',
+  color: 'violet',
   hasLimit: true,
   limit: 1_800_000,
   carryIn: 0,
@@ -266,6 +268,49 @@ describe('Tile', () => {
       act(() => {
         useDragStore.setState({ phase: 'idle', source: null, hoverKey: null, candidates: {}, dropped: null });
       });
+    });
+  });
+
+  describe('цвет категории и действие TalkBack', () => {
+    const background = (tileRow: BudgetRow) =>
+      StyleSheet.flatten(rootNode(render(tileRow).tree).props.style).backgroundColor;
+
+    it('в обычном состоянии плитка окрашена цветом категории', () => {
+      expect(background(row({ color: 'teal' }))).toBe(categoryColors.light.teal.tile);
+      expect(background(row({ color: 'magenta' }))).toBe(categoryColors.light.magenta.tile);
+    });
+
+    it('«почти» и «перерасход» сохраняют цвета состояния, цвет категории не мешает', () => {
+      expect(background(row({ color: 'teal', state: 'near' }))).toBe(tokens.light.near.tile);
+      expect(background(row({ color: 'teal', state: 'over' }))).toBe(tokens.light.over.tile);
+    });
+
+    it('неизвестный цвет (в том числе имя из прототипа) — фиолетовый, как раньше', () => {
+      expect(background(row({ color: 'нет такого' }))).toBe(tokens.light.tile);
+      expect(background(row({ color: 'constructor' }))).toBe(tokens.light.tile);
+    });
+
+    it('у плитки есть действие «Записать расход» только с обработчиком', () => {
+      const onQuickEntry = jest.fn();
+      let tree!: ReturnType<typeof create>;
+      act(() => {
+        tree = create(
+          <Tile
+            row={row({})}
+            rect={{ x: 0, y: 0, width: 194, height: 309 }}
+            carryFrom="сентября"
+            fontScale={1}
+            onQuickEntry={onQuickEntry}
+          />,
+        );
+      });
+      const node = rootNode(tree);
+      expect(node.props.accessibilityActions).toEqual([{ name: 'record', label: 'Записать расход' }]);
+      act(() => node.props.onAccessibilityAction({ nativeEvent: { actionName: 'record' } }));
+      expect(onQuickEntry).toHaveBeenCalledWith(expect.objectContaining({ categoryId: 'c' }));
+      act(() => node.props.onAccessibilityAction({ nativeEvent: { actionName: 'activate' } }));
+      expect(onQuickEntry).toHaveBeenCalledTimes(1);
+      expect(rootNode(render(row({})).tree).props.accessibilityActions).toBeUndefined();
     });
   });
 });

@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion } from 'react-native-reanimated';
 
 import { type CoinColor } from '@/shared/theme/tokens';
-import { useCoinColors, useCoinIconColors, useTokens } from '@/shared/theme/useTokens';
+import { useCategoryColor, useCoinColors, useCoinIconColors, useTokens } from '@/shared/theme/useTokens';
 import { AppIcon } from '@/shared/ui/AppIcon';
 import { AppText } from '@/shared/ui/AppText';
 
@@ -29,6 +29,7 @@ export function DragLayer() {
   const t = useTokens();
   const fills = useCoinColors();
   const icons = useCoinIconColors();
+  const ring = useCategoryColor(source?.kind === 'income' ? (source.color ?? 'violet') : 'violet').strong;
 
   useEffect(() => {
     if (phase === 'returning') returnGhost(reduceMotion);
@@ -63,11 +64,11 @@ export function DragLayer() {
           style={[
             styles.ghost,
             income
-              ? { backgroundColor: t.surface, borderWidth: 3, borderColor: t.accent }
+              ? { backgroundColor: t.surface, borderWidth: 3, borderColor: ring }
               : { backgroundColor: fills[colorKey], borderWidth: 3, borderColor: 'rgba(255,255,255,0.85)' },
           ]}
         >
-          <AppIcon name={source.icon} size={26} color={income ? t.accent : icons[colorKey]} />
+          <AppIcon name={source.icon} size={26} color={income ? ring : icons[colorKey]} />
         </View>
       </Animated.View>
     </View>

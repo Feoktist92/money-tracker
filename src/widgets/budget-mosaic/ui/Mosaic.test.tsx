@@ -10,6 +10,7 @@ const row = (i: number, patch: Partial<BudgetRow> = {}): BudgetRow => ({
   categoryId: `c${i}`,
   name: `Категория ${i}`,
   icon: 'house',
+  color: 'violet',
   hasLimit: true,
   limit: 100_000 + i,
   carryIn: 0,
@@ -69,5 +70,50 @@ describe('Mosaic', () => {
     const tile = tree.root.findAllByType(Tile)[0]!;
     act(() => tile.props.onPress(rows[0]));
     expect(onTilePress).toHaveBeenCalledWith(rows[0]);
+  });
+
+  describe('пустое состояние', () => {
+    const renderEmpty = (onAddCategory?: () => void) => {
+      let tree!: ReturnType<typeof create>;
+      act(() => {
+        tree = create(<Mosaic rows={[]} carryFrom="сентября" onAddCategory={onAddCategory} />);
+      });
+      return tree;
+    };
+    const addButton = (tree: ReturnType<typeof create>) =>
+      tree.root.findAll(
+        (n) => n.props.accessibilityLabel === 'Добавить категорию' && typeof n.props.onPress === 'function',
+      )[0];
+
+    it('нет категорий и есть обработчик: подсказка и кнопка «Добавить категорию»', () => {
+      const onAdd = jest.fn();
+      const tree = renderEmpty(onAdd);
+      act(() => addButton(tree)!.props.onPress());
+      expect(onAdd).toHaveBeenCalledTimes(1);
+    });
+
+    it('без обработчика пустая мозаика ничего не рисует', () => {
+      expect(addButton(renderEmpty())).toBeUndefined();
+    });
+
+    it('с категориями кнопки нет', () => {
+      let tree!: ReturnType<typeof create>;
+      act(() => {
+        tree = create(<Mosaic rows={[row(1)]} carryFrom="сентября" onAddCategory={jest.fn()} />);
+      });
+      expect(addButton(tree)).toBeUndefined();
+    });
+  });
+
+  it('действие «Записать расход» передаётся плиткам', () => {
+    const onQuick = jest.fn();
+    let tree!: ReturnType<typeof create>;
+    act(() => {
+      tree = create(<Mosaic rows={[row(1)]} carryFrom="сентября" onTileQuickEntry={onQuick} />);
+    });
+    act(() =>
+      tree.root.findAllByType(View)[0]!.props.onLayout({ nativeEvent: { layout: { width: 390, height: 608 } } }),
+    );
+    expect(tree.root.findAllByType(Tile)[0]!.props.onQuickEntry).toBe(onQuick);
   });
 });
